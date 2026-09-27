@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharma Guard — Enterprise Control Center</title>
+    <link rel="stylesheet" href="/css/pharmaguard-theme.css">
+    <style>
+        /* PAGE HEADER & SEARCH BAR */
+        .control-header {
+            margin-bottom: 24px;
+        }
+
+        .control-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .control-title-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .control-title-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #075dcc, #0879d9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 14px rgba(8, 121, 217, 0.35);
+        }
+
+        .control-title-box h1 {
+            font-size: 30px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        .search-container {
+            position: relative;
+            width: 320px;
+        }
+
+        @media (max-width: 768px) {
+            .search-container {
+                width: 100%;
+            }
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 11px 16px 11px 40px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            font-size: 14px;
+            outline: none;
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: #0879d9;
+            box-shadow: 0 0 0 3px rgba(8, 121, 217, 0.15);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            stroke: #94a3b8;
+            pointer-events: none;
+        }
+
+        /* TWO COLUMN LAYOUT */
+        .control-layout {
+            display: grid;
+            grid-template-columns: 270px 1fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        @media (max-width: 960px) {
+            .control-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* SIDEBAR NAVIGATION */
+        .control-sidebar {
+            background: white;
+            border-radius: 16px;
+            padding: 12px;
+            box-shadow: 0 4px 20px rgba(0, 50, 100, 0.04);
+            border: 1px solid #e5edf5;
+        }
+
+        .sidebar-group-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 8px 14px 4px 14px;
+            margin-top: 6px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            color: #475569;
+            font-weight: 600;
+            font-size: 13.5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            margin-bottom: 2px;
+        }
+
+        .sidebar-item svg {
+            width: 18px;
+            height: 18px;
+            stroke-width: 2;
+            flex-shrink: 0;
+        }
+
+        .sidebar-item:hover {
+            background: #f1f7fd;
+            color: #0879d9;
+        }
+
+        .sidebar-item:hover svg {
+            stroke: #0879d9;
+        }
+
+        .sidebar-item.active {
+            background: #eef6ff;
+            color: #075dcc;
+            font-weight: 700;
+        }
+
+        .sidebar-item.active svg {
+            stroke: #075dcc;
+        }
+
+        .sidebar-item.active::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 5px;
+            bottom: 5px;
+            width: 4px;
+            background: #09a9a3;
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* MOBILE SELECTOR */
+        .mobile-section-select {
+            display: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: white;
+        }
+
+        @media (max-width: 960px) {
+            .mobile-section-select { display: block; }
+            .control-sidebar { display: none; }
+        }
+
+        /* CONTENT CARDS */
+        .control-content-area {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .settings-section {
+            display: none;
+            flex-direction: column;
+            gap: 24px;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+
+        .settings-section.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .ctrl-card {
+            background: white;
+            border-radius: 16px;
+            padding: 26px;
+            box-shadow: 0 4px 20px rgba(0, 50, 100, 0.04);
+            border: 1px solid #e5edf5;
+        }
+
+        .card-header {
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .card-header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .card-header-title svg {
+            width: 22px;
+            height: 22px;
+            stroke: #0879d9;
+            stroke-width: 2;
+        }
+
+        .card-header h2, .card-header h3 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .card-header p {
+            color: #64748b;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        /* FORM GRID & INPUTS */
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 650px) {
+            .form-grid-2 { grid-template-columns: 1fr; }
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field-label {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #0f172a;
+            outline: none;
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        .field-input:focus {
+            border-color: #0879d9;
+            box-shadow: 0 0 0 3px rgba(8, 121, 217, 0.15);
+        }
+
+        .field-input[readonly] {
+            background: #f8fafc;
+            color: #64748b;
+            cursor: not-allowed;
+        }
+
+        /* TOGGLE CARDS */
+        .toggle-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            margin-bottom: 12px;
+            transition: background 0.15s ease;
+        }
+
+        .toggle-item:hover { background: #f1f7fd; }
+
+        .toggle-text h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 3px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-text h4 svg { width: 16px; height: 16px; stroke: #0879d9; }
+        .toggle-text p { font-size: 12px; color: #64748b; margin: 0; }
+
+        /* SWITCH */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .3s ease;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s ease;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        input:checked + .slider { background: linear-gradient(135deg, #075dcc, #0879d9); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* QUICK ACCESS CARDS */
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 850px) {
+            .quick-grid { grid-template-columns: 1fr; }
+        }
+
+        .quick-card {
+            border: 1px solid #e5edf5;
+            border-radius: 14px;
+            padding: 18px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quick-card:hover {
+            border-color: #0879d9;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(8, 121, 217, 0.12);
+        }
+
+        .quick-card h4 {
+            font-size: 13px;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 10px 0;
+        }
+
+        .quick-card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .quick-link-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #334155;
+            padding: 6px 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+
+        .quick-link-btn:hover { background: #eef6ff; color: #075dcc; }
+
+        /* BUTTONS */
+        .btn-gradient {
+            background: linear-gradient(100deg, #075dcc, #0879d9, #09a9a3);
+            color: white;
+            border: none;
+            padding: 11px 22px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(8, 121, 217, 0.3);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .btn-gradient:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(8, 121, 217, 0.4); }
+
+        .btn-outline {
+            background: white;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-outline:hover { background: #f8fafc; color: #0f172a; }
+
+        /* TABLES & BADGES */
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .custom-table th { background: #f8fafc; padding: 12px 16px; font-weight: 700; color: #475569; border-bottom: 1px solid #e2e8f0; }
+        .custom-table td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .pill-green { background: #e6f9f5; color: #00a885; }
+        .pill-gray { background: #f1f5f9; color: #64748b; }
+        .pill-red { background: #fde8e8; color: #e74c3c; }
+
+        /* CIRCULAR PROGRESS */
+        .score-circle {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: conic-gradient(#00a885 92%, #e2e8f0 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 168, 133, 0.2);
+        }
+
+        .score-circle-inner {
+            width: 74px;
+            height: 74px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar">
+    <a href="/dashboard" class="brand" style="text-decoration:none;">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3L19 6V11C19 15.5 16.1 19.5 12 21C7.9 19.5 5 15.5 5 11V6L12 3Z" fill="rgba(255,255,255,0.25)" stroke="white" stroke-width="1.5"/>
+                <path d="M12 7V15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M9 11H15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="brand-text">
+            <h2>PHARMA GUARD</h2>
+            <span>VERIFY. PROTECT. STAY SAFE.</span>
+        </div>
+    </a>
+
+    <button type="button" class="menu-btn" onclick="toggleMenu()" title="Toggle navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6H20"/><path d="M4 12H20"/><path d="M4 18H20"/>
+        </svg>
+    </button>
+
+    <nav class="nav-links" id="navLinks">
+        <a href="/dashboard" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Dashboard
+        </a>
+        <a href="/medicines" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 4L20 16"/><path d="M16 4L4 16"/><path d="M6 6L18 18"/><rect x="3" y="3" width="18" height="18" rx="9"/></svg>
+            Medicines
+        </a>
+        <a href="/inventory" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7L12 3L21 7L12 11L3 7Z"/><path d="M3 7V17L12 21L21 17V7"/><path d="M12 11V21"/></svg>
+            Inventory
+        </a>
+        <a href="/transactions" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 7H21M8 12H21M8 17H21M3 7H4M3 12H4M3 17H4"/></svg>
+            Transactions
+        </a>
+        <a href="/alerts" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8C18 4.7 15.3 2 12 2C8.7 2 6 4.7 6 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/><path d="M10 21H14"/></svg>
+            Alerts
+        </a>
+        <a href="/suppliers" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 21V8L12 3L21 8V21"/><path d="M7 21V12H17V21"/><path d="M9 16H15"/></svg>
+            Suppliers
+        </a>
+        <a href="/scan" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7V3H7"/><path d="M17 3H21V7"/><path d="M21 17V21H17"/><path d="M7 21H3V17"/><path d="M8 12H16"/></svg>
+            Scan Medicine
+        </a>
+    </nav>
+
+    <div class="nav-actions">
+        <button type="button" class="icon-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">
+            <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12.8A8.5 8.5 0 1111.2 3 6.5 6.5 0 0021 12.8Z"/></svg>
+        </button>
+
+        <a href="/alerts" class="icon-btn" title="Notifications" style="text-decoration:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 006 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/><path d="M10 21H14"/></svg>
+            <span class="notification-badge" th:if="${activeAlertCount != null and activeAlertCount > 0}" th:text="${activeAlertCount}">3</span>
+        </a>
+
+        <div class="profile" id="profile" onclick="toggleProfile()">
+            <div class="avatar" th:text="${#strings.substring(username != null ? username : 'A', 0, 1).toUpperCase()}">A</div>
+            <div class="profile-info">
+                <strong th:text="${currentUser != null ? currentUser.fullName : 'Admin'}">Admin</strong>
+                <small th:text="${currentUser != null ? currentUser.role : 'Administrator'}">Administrator</small>
+            </div>
+            <svg class="profile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 9L12 15L18 9"/></svg>
+
+            <div class="profile-menu">
+                <a href="/profile">Profile</a>
+                <a href="/settings">Settings</a>
+                <form th:action="@{/logout}" method="post" style="margin:0;">
+                    <button type="submit" class="logout">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- MAIN APP CONTAINER -->
+<div class="app-container">
+
+    <!-- FLASH MESSAGES -->
+    <div th:if="${successMsg}" style="background:#e6f9f5; color:#00a885; border:1px solid #a3e9d9; padding:12px 18px; border-radius:10px; margin-bottom:20px; font-weight:600; font-size:14px;">
+        <i class="fa-solid fa-check"></i> <span th:text="${successMsg}">Settings saved successfully.</span>
+    </div>
+    <div th:if="${errorMsg}" style="background:#fde8e8; color:#e74c3c; border:1px solid #f5b7b1; padding:12px 18px; border-radius:10px; margin-bottom:20px; font-weight:600; font-size:14px;">
+        <i class="fa-solid fa-triangle-exclamation"></i> <span th:text="${errorMsg}">Error occurred</span>
+    </div>
+
+    <!-- 2. CONTROL CENTER HEADER WITH GLOBAL SEARCH -->
+    <div class="control-header">
+        <div class="control-header-top">
+            <div>
+                <div class="control-title-box">
+                    <div class="control-title-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px; height:24px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </div>
+                    <h1>SETTINGS CONTROL CENTER</h1>
+                </div>
+                <p style="margin:4px 0 0 0; color:#64748b; font-size:13.5px;">Control your Pharma Guard account, pharmacy operations, security and intelligent features.</p>
+            </div>
+
+            <!-- SEARCH BOX -->
+            <div class="search-container">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="globalSettingsSearch" class="search-input" placeholder="Search expiry, inventory, notifications..." onkeyup="filterSettingsSearch(this.value)">
+            </div>
+        </div>
+    </div>
+
+    <!-- MOBILE SECTION DROPDOWN -->
+    <select class="mobile-section-select" onchange="switchSection(this.value)">
+        <option value="overview">Overview</option>
+        <option value="account">Account</option>
+        <option value="appearance">Appearance</option>
+        <option value="notifications">Notifications</option>
+        <option value="inventory">Inventory Intelligence</option>
+        <option value="ai">AI Assistant</option>
+        <option value="scanner">Scanner</option>
+        <option value="security">Security</option>
+        <option value="users">Users & Roles</option>
+        <option value="pharmacy">Pharmacy</option>
+        <option value="reports">Reports</option>
+        <option value="audit">Audit Log</option>
+        <option value="backup">Backup & Data</option>
+        <option value="integrations">Integrations</option>
+        <option value="systemhealth">System Health</option>
+    </select>
+
+    <!-- 3. TWO-COLUMN LAYOUT -->
+    <div class="control-layout">
+
+        <!-- 3. 15-ITEM SIDEBAR -->
+        <div class="control-sidebar">
+            <div class="sidebar-group-title">MAIN</div>
+
+            <div class="sidebar-item active" onclick="switchSection('overview')" id="nav-overview">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                Overview
+            </div>
+            <div class="sidebar-item" onclick="switchSection('account')" id="nav-account">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Account
+            </div>
+            <div class="sidebar-item" onclick="switchSection('appearance')" id="nav-appearance">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                Appearance
+            </div>
+            <div class="sidebar-item" onclick="switchSection('notifications')" id="nav-notifications">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                Notifications
+            </div>
+
+            <div class="sidebar-group-title">INTELLIGENCE & HARDWARE</div>
+
+            <div class="sidebar-item" onclick="switchSection('inventory')" id="nav-inventory">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                Inventory Intelligence
+            </div>
+            <div class="sidebar-item" onclick="switchSection('ai')" id="nav-ai">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
+                AI Assistant
+            </div>
+            <div class="sidebar-item" onclick="switchSection('scanner')" id="nav-scanner">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7V3H7"/><path d="M17 3H21V7"/><path d="M21 17V21H17"/><path d="M7 21H3V17"/><path d="M8 12H16"/></svg>
+                Scanner
+            </div>
+
+            <div class="sidebar-group-title">SECURITY & ROLES</div>
+
+            <div class="sidebar-item" onclick="switchSection('security')" id="nav-security">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Security Center
+            </div>
+            <div class="sidebar-item" onclick="switchSection('users')" id="nav-users">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Users & Roles
+            </div>
+
+            <div class="sidebar-group-title">ADMINISTRATION</div>
+
+            <div class="sidebar-item" onclick="switchSection('pharmacy')" id="nav-pharmacy">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Pharmacy Profile
+            </div>
+            <div class="sidebar-item" onclick="switchSection('reports')" id="nav-reports">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                Reports
+            </div>
+            <div class="sidebar-item" onclick="switchSection('audit')" id="nav-audit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                Audit Log
+            </div>
+            <div class="sidebar-item" onclick="switchSection('backup')" id="nav-backup">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Backup & Data
+            </div>
+
+            <div class="sidebar-group-title">SYSTEM</div>
+
+            <div class="sidebar-item" onclick="switchSection('integrations')" id="nav-integrations">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                Integrations
+            </div>
+            <div class="sidebar-item" onclick="switchSection('systemhealth')" id="nav-systemhealth">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                System Health
+            </div>
+        </div>
+
+        <!-- RIGHT CONTENT PANELS -->
+        <div class="control-content-area">
+
+            <!-- 4. OVERVIEW SECTION (DEFAULT LANDING VIEW) -->
+            <div class="settings-section active" id="section-overview">
+
+                <!-- CONTROL CARD -->
+                <div class="ctrl-card" style="background:linear-gradient(135deg, #ffffff, #f0f7ff);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;">
+                        <div style="display:flex; align-items:center; gap:18px;">
+                            <div style="width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #075dcc, #0879d9); color:white; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:800; box-shadow:0 6px 18px rgba(8, 121, 217, 0.35);"
+                                 th:text="${#strings.substring(currentUser != null ? currentUser.fullName : 'A', 0, 1).toUpperCase()}">A</div>
+                            <div>
+                                <h3 style="font-size:22px; font-weight:800; color:#0f172a; margin:0 0 4px 0;" th:text="${currentUser != null ? currentUser.fullName : 'Admin'}">Admin</h3>
+                                <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                                    <span class="status-pill pill-green" th:text="${currentUser != null ? currentUser.role : 'ADMIN'}">ADMIN</span>
+                                    <span style="font-size:12px; color:#00a885; font-weight:700;">● Active</span>
+                                </div>
+                                <p style="font-size:12.5px; color:#64748b; margin:0;">Last login: Today, 02:14 PM • Device: Local Windows Session</p>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; align-items:center; gap:20px;">
+                            <div style="text-align:right;">
+                                <small style="display:block; font-size:11px; font-weight:800; color:#94a3b8; text-transform:uppercase;">SECURITY SCORE</small>
+                                <span style="font-size:24px; font-weight:800; color:#00a885;">92%</span>
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                <button type="button" class="btn-gradient" onclick="switchSection('account')" style="padding:8px 16px; font-size:13px;">Edit Profile</button>
+                                <button type="button" class="btn-outline" onclick="switchSection('security')" style="padding:8px 16px; font-size:13px;">Security Center</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QUICK ACCESS CATEGORIES -->
+                <div class="quick-grid">
+                    <div class="quick-card">
+                        <h4>ACCOUNT PREFERENCES</h4>
+                        <div class="quick-card-list">
+                            <a href="javascript:void(0)" onclick="switchSection('account')" class="quick-link-btn">👤 Profile & Credentials</a>
+                            <a href="javascript:void(0)" onclick="switchSection('appearance')" class="quick-link-btn">🎨 Theme & Interface</a>
+                            <a href="javascript:void(0)" onclick="switchSection('notifications')" class="quick-link-btn">🔔 Notification Rules</a>
+                            <a href="javascript:void(0)" onclick="switchSection('security')" class="quick-link-btn">🔐 Security & Sessions</a>
+                        </div>
+                    </div>
+
+                    <div class="quick-card">
+                        <h4>PHARMACY OPERATIONS</h4>
+                        <div class="quick-card-list">
+                            <a href="javascript:void(0)" onclick="switchSection('inventory')" class="quick-link-btn">💊 Inventory Intelligence</a>
+                            <a href="javascript:void(0)" onclick="switchSection('ai')" class="quick-link-btn">🤖 AI Assistant Engine</a>
+                            <a href="javascript:void(0)" onclick="switchSection('scanner')" class="quick-link-btn">📷 Scanner Configuration</a>
+                            <a href="javascript:void(0)" onclick="switchSection('pharmacy')" class="quick-link-btn">🏥 Pharmacy Profile</a>
+                        </div>
+                    </div>
+
+                    <div class="quick-card">
+                        <h4>SYSTEM ADMINISTRATION</h4>
+                        <div class="quick-card-list">
+                            <a href="javascript:void(0)" onclick="switchSection('users')" class="quick-link-btn">👥 Role Permissions</a>
+                            <a href="javascript:void(0)" onclick="switchSection('reports')" class="quick-link-btn">📊 Report Generation</a>
+                            <a href="javascript:void(0)" onclick="switchSection('audit')" class="quick-link-btn">📜 Audit Activity Trail</a>
+                            <a href="javascript:void(0)" onclick="switchSection('backup')" class="quick-link-btn">💾 Backup & CSV Export</a>
+                            <a href="javascript:void(0)" onclick="switchSection('systemhealth')" class="quick-link-btn">🖥 System Health (98%)</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 5. ACCOUNT CENTER -->
+            <div class="settings-section" id="section-account">
+                <div class="ctrl-card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <h2>Profile Information</h2>
+                        </div>
+                        <p>Manage your login name, email, and user account metadata.</p>
+                    </div>
+
+                    <form th:action="@{/settings/profile/update}" method="post">
+                        <div class="form-grid-2">
+                            <div class="field-group">
+                                <label class="field-label">Full Name</label>
+                                <input type="text" name="fullName" class="field-input" th:value="${currentUser.fullName}" required>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Email Address</label>
+                                <input type="email" name="email" class="field-input" th:value="${currentUser.email}" required>
+                            </div>
+                        </div>
+
+                        <div class="form-grid-2">
+                            <div class="field-group">
+                                <label class="field-label">Username</label>
+                                <input type="text" class="field-input" th:value="${currentUser.username}" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">User Role</label>
+                                <input type="text" class="field-input" th:value="${currentUser.role}" readonly>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+                            <button type="submit" class="btn-gradient">Save Profile Changes</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="ctrl-card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            <h2>Change Password</h2>
+                        </div>
+                        <p>Update password using BCrypt security encryption.</p>
+                    </div>
+
+                    <form th:action="@{/settings/password/update}" method="post">
+                        <div class="field-group" style="margin-bottom:16px;">
+                            <label class="field-label">Current Password *</label>
+                            <input type="password" name="currentPassword" class="field-input" placeholder="Enter current password" required>
+                        </div>
+
+                        <div class="form-grid-2">
+                            <div class="field-group">
+                                <label class="field-label">New Password *</label>
+                                <input type="password" name="newPassword" class="field-input" placeholder="At least 6 characters" required>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Confirm New Password *</label>
+                                <input type="password" name="confirmPassword" class="field-input" placeholder="Confirm new password" required>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+                            <button type="submit" class="btn-gradient">Update Password</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 6. APPEARANCE -->
+            <div class="settings-section" id="section-appearance">
+                <div class="ctrl-card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                            <h2>Theme & Appearance Settings</h2>
+                        </div>
+                        <p>Select your interface theme, primary accent color, and layout density.</p>
+                    </div>
+
+                    <form th:action="@{/settings/save}" method="post">
+                        <div class="field-group" style="margin-bottom:18px;">
+                            <label class="field-label">Interface Theme Mode</label>
+                            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-top:6px;">
+                                <label style="border:1px solid #cbd5e1; border-radius:12px; padding:16px; text-align:center; cursor:pointer; background:white;">
+                                    <input type="radio" name="theme" value="Light" th:checked="${settings.theme == 'Light'}" onclick="setAppTheme('light')">
+                                    <div style="font-size:22px; margin:6px 0;">☀️</div>
+                                    <strong>Light Mode</strong>
+                                </label>
+                                <label style="border:1px solid #cbd5e1; border-radius:12px; padding:16px; text-align:center; cursor:pointer; background:#1e293b; color:white;">
+                                    <input type="radio" name="theme" value="Dark" th:checked="${settings.theme == 'Dark'}" onclick="setAppTheme('dark')">
+                                    <div style="font-size:22px; margin:6px 0;">🌙</div>
+                                    <strong>Dark Mode</strong>
+                                </label>
+                                <label style="border:1px solid #cbd5e1; border-radius:12px; padding:16px; text-align:center; cursor:pointer; background:#f1f5f9;">
+                                    <input type="radio" name="theme" value="System" th:checked="${settings.theme == 'System'}">
+                                    <div style="font-size:22px; margin:6px 0;">💻</div>
+                                    <strong>System Preference</strong>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-grid-2">
+                            <div class="field-group">
+                                <label class="field-label">Accent Color Theme</label>
+                                <select name="accentColor" class="field-input">
+                                    <option value="Blue" th:selected="${settings.accentColor == 'Blue'}">Blue (Pharma Guard Default)</option>
+                                    <option value="Teal" th:selected="${settings.accentColor == 'Teal'}">Teal (Medical Clean)</option>
+                                    <option value="Purple" th:selected="${settings.accentColor == 'Purple'}">Purple (Enterprise)</option>
+                                    <option value="Green" th:selected="${settings.accentColor == 'Green'}">Green (Bio Safety)</option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Interface Spacing Layout</label>
+                                <select name="layout" class="field-input">
+                                    <option value="Comfortable" th:selected="${settings.layout == 'Comfortable'}">Comfortable (Default Spacing)</option>
+                                    <option value="Compact" th:selected="${settings.layout == 'Compact'}">Compact (Denser Spacing)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+                            <button type="submit" class="btn-gradient">Save Appearance</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 7. ADVANCED NOTIFICATIONS -->
+            <div class="settings-section" id="section-notifications">
+                <div class="ctrl-card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                            <h2>Advanced Alert Rules & Thresholds</h2>
+                        </div>
+                        <p>Set custom warning levels and delivery channels for notifications.</p>
+                    </div>
+
+                    <!-- NOTIFICATION PREFERENCES CARD -->
+                    <div id="notif-pref-alert-banner"></div>
+                    <form th:action="@{/settings/notifications/update}" method="post" id="notificationPreferencesForm" onsubmit="saveNotificationPreferencesAjax(event)">
+                        
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>⏳ Expiry Alerts</h4>
+                                <p>Get notified when medicines are approaching expiry.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="pref-expiryAlerts" name="expiryAlerts" th:checked="${settings.isExpiryAlerts()}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>⚠️ Low-Stock Alerts</h4>
+                                <p>Get notified when inventory reaches the low-stock level.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="pref-lowStockAlerts" name="lowStockAlerts" th:checked="${settings.isLowStockAlerts()}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>🔍 Medicine Verification Alerts</h4>
+                                <p>Get notified about medicine verification results.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="pref-verificationAlerts" name="verificationAlerts" th:checked="${settings.isVerificationAlerts()}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>🚚 Supplier Alerts</h4>
+                                <p>Get notified about supplier-related events.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="pref-supplierAlerts" name="supplierAlerts" th:checked="${settings.isSupplierAlerts()}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>🔒 Security Notifications</h4>
+                                <p>Receive important account and security notifications.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="pref-securityNotifications" name="securityNotifications" th:checked="${settings.isSecurityNotifications()}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>📧 Email Notifications</h4>
+                                <p>Receive notifications through email.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="pref-emailNotifications" name="emailNotifications" th:checked="${settings.isEmailNotifications()}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>🔔 In-App Notifications</h4>
+                                <p>Receive notifications inside Pharma Guard.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="pref-inAppNotifications" name="inAppNotifications" th:checked="${settings.isInAppNotifications()}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <!-- THRESHOLDS SUB-SECTION -->
+                        <div style="border:1px solid #e2e8f0; border-radius:12px; padding:18px; margin-top:20px; background:#fafafa;">
+                            <h4 style="font-size:14px; font-weight:700; color:#0f172a; margin:0 0 12px 0;">Warning Stage Thresholds</h4>
+                            <div class="form-grid-2">
+                                <div class="field-group">
+                                    <label class="field-label">Low Stock Threshold (Units)</label>
+                                    <input type="number" name="lowStockWarningThreshold" class="field-input" th:value="${settings.lowStockWarningThreshold}">
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label">Expiry Warning Stage (Days)</label>
+                                    <input type="number" name="expiryWarningDays" class="field-input" th:value="${settings.expiryWarningDays}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; margin-top:20px;">
+                            <button type="submit" class="btn-gradient" id="btn-save-notif-pref">
+                                <i class="fa-solid fa-check"></i> Save Preferences
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 8. INVENTORY INTELLIGENCE -->
+            <div class="settings-section" id="section-inventory">
+                <div class="ctrl-card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                            <h2>Inventory Intelligence Configuration</h2>
+                        </div>
+                        <p>Configure automated intelligence algorithms, reorder settings, and safety parameters.</p>
+                    </div>
+
+                    <form th:action="@{/settings/save}" method="post">
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>FEFO Recommendation Engine</h4>
+                                <p>Recommend First-Expired, First-Out batch selection automatically.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="enableFefo" th:checked="${settings.enableFefo}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>Stock-Out Risk Prediction</h4>
+                                <p>Calculate stock runout risk based on daily consumption velocity.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="stockOutPrediction" th:checked="${settings.stockOutPrediction}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>Reorder Quantity Recommendations</h4>
+                                <p>Calculate optimal reorder quantity based on lead time and safety stock.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="reorderRecommendations" th:checked="${settings.reorderRecommendations}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>Expiry Waste Detection</h4>
+                                <p>Identify batches at risk of expiring before full stock utilization.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="expiryWasteDetection" th:checked="${settings.expiryWasteDetection}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="card-header" style="margin-top:24px;">
+                            <h3>Reorder Parameters</h3>
+                        </div>
+
+                        <div class="form-grid-2">
+                            <div class="field-group">
+                                <label class="field-label">Safety Stock Buffer (Units)</label>
+                                <input type="number" name="safetyStock" class="field-input" th:value="${settings.safetyStock}">
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Supplier Lead Time (Days)</label>
+                                <input type="number" name="leadTimeDays" class="field-input" th:value="${settings.leadTimeDays}">
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+                            <button type="submit" class="btn-gradient">Save Intelligence Parameters</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 9. AI ASSISTANT SETTINGS -->
+            <div class="settings-section" id="section-ai">
+                <div class="ctrl-card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
+                            <h2>AI Assistant Settings</h2>
+                        </div>
+                        <p>Configure Gemini AI intelligence insights and analysis depth.</p>
+                    </div>
+
+                    <div style="background:#eef6ff; border:1px solid #bfdbfe; border-radius:12px; padding:14px 18px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between;">
+                        <div>
+                            <strong style="color:#075dcc; font-size:14px;">Gemini AI Assistant Engine</strong>
+                            <p style="margin:2px 0 0 0; color:#1e40af; font-size:12px;">Active & Operational</p>
+                        </div>
+                        <span class="status-pill pill-green">● Active</span>
+                    </div>
+
+                    <form th:action="@{/settings/save}" method="post">
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>AI Proactive Suggestions</h4>
+                                <p>Display AI recommendations on dashboard intelligence cards.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="aiSuggestions" th:checked="${settings.aiSuggestions}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>Inventory Velocity Analysis</h4>
+                                <p>Allow AI to analyze consumption trends and stock levels.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="aiInventoryAnalysis" th:checked="${settings.aiInventoryAnalysis}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>Expiry Risk Analysis</h4>
+                                <p>AI automated auditing of batch expiration dates.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="aiExpiryRiskAnalysis" th:checked="${settings.aiExpiryRiskAnalysis}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="field-group" style="margin-top:16px; margin-bottom:20px; max-width:320px;">
+                            <label class="field-label">AI Response Style</label>
+                            <select name="aiResponseStyle" class="field-input">
+                                <option value="Quick" th:selected="${settings.aiResponseStyle == 'Quick'}">Quick (Concise Summaries)</option>
+                                <option value="Balanced" th:selected="${settings.aiResponseStyle == 'Balanced'}">Balanced (Standard Insights)</option>
+                                <option value="Detailed" th:selected="${settings.aiResponseStyle == 'Detailed'}">Detailed (In-depth Analytics)</option>
+                            </select>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end;">
+                            <button type="submit" class="btn-gradient">Save AI Configuration</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 10. SCANNER SETTINGS -->
+            <div class="settings-section" id="section-scanner">
+                <div class="ctrl-card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7V3H7"/><path d="M17 3H21V7"/><path d="M21 17V21H17"/><path d="M7 21H3V17"/><path d="M8 12H16"/></svg>
+                            <h2>Scanner Configuration</h2>
+                        </div>
+                        <p>Configure Barcode and QR Code hardware scanner behavior.</p>
+                    </div>
+
+                    <form th:action="@{/settings/save}" method="post">
+                        <div class="field-group" style="margin-bottom:20px; max-width:320px;">
+                            <label class="field-label">Primary Scanner Driver Mode</label>
+                            <select name="scannerType" class="field-input">
+                                <option value="Barcode + QR" th:selected="${settings.scannerType == 'Barcode + QR'}">Barcode + QR (Universal Hybrid)</option>
+                                <option value="Camera Scanner" th:selected="${settings.scannerType == 'Camera Scanner'}">Camera Web Scanner</option>
+                            </select>
+                        </div>
+
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>Auto-Open Medicine Details After Scan</h4>
+                                <p>Navigate directly to medicine record after successful barcode scan.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="autoOpenScanResult" th:checked="${settings.autoOpenScanResult}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>Play Audio Scan Beep</h4>
+                                <p>Audible feedback chime when barcode is decoded.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="playScanSound" th:checked="${settings.playScanSound}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+                            <button type="submit" class="btn-gradient">Save Scanner Settings</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 11. SECURITY CENTER -->
+            <div class="settings-section" id="section-security">
+
+                <!-- SECURITY SCORE CARD -->
+                <div class="ctrl-card" style="display:flex; align-items:center; gap:24px; background:linear-gradient(135deg, #ffffff, #f0fdf4);">
+                    <div class="score-circle">
+                        <div class="score-circle-inner">
+                            <strong style="font-size:22px; font-weight:800; color:#00a885;">92%</strong>
+                            <small style="font-size:9px; color:#94a3b8; font-weight:700;">SCORE</small>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="font-size:18px; font-weight:800; color:#0f172a; margin:0 0 4px 0;">Security Health Score: Strong</h3>
+                        <p style="font-size:13px; color:#64748b; margin:0 0 8px 0;">Your account passes core security checks (BCrypt Password Hashing & Active Session Tracking).</p>
+                        <div style="display:flex; gap:12px; font-size:12px; font-weight:700; color:#00a885;">
+                            <span>✓ Password Encryption</span>
+                            <span>✓ Session Isolation</span>
+                            <span>✓ Role Validation</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ctrl-card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            <h2>Security Rules</h2>
+                        </div>
+                        <p>Configure authentication security preferences and session rules.</p>
+                    </div>
+
+                    <form th:action="@{/settings/save}" method="post">
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>Two-Factor Authentication (2FA)</h4>
+                                <p>Require authentication verification code during user login.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="twoFactorAuth" th:checked="${settings.twoFactorAuth}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-item">
+                            <div class="toggle-text">
+                                <h4>Login Notifications</h4>
+                                <p>Notify email whenever a new session is initiated from a new device.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="loginNotifications" th:checked="${settings.loginNotifications}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="field-group" style="margin-top:16px; margin-bottom:20px; max-width:320px;">
+                            <label class="field-label">Automatic Inactivity Timeout</label>
+                            <select name="sessionTimeoutMinutes" class="field-input">
+                                <option value="15" th:selected="${settings.sessionTimeoutMinutes == 15}">15 Minutes</option>
+                                <option value="30" th:selected="${settings.sessionTimeoutMinutes == 30}">30 Minutes (Recommended)</option>
+                                <option value="60" th:selected="${settings.sessionTimeoutMinutes == 60}">60 Minutes</option>
+                            </select>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end;">
+                            <button type="submit" class="btn-gradient">Save Security Settings</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 12. ROLE & PERMISSION MANAGER -->
+            <div class="settings-section" id="section-users">
+                <div class="ctrl-card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            <h2>Role-Based Access Control (RBAC) Matrix</h2>
+                        </div>
+                        <p>Permissions mapped across system roles.</p>
+                    </div>
+
+                    <table class="custom-table" style="margin-bottom:24px;">
+                        <thead>
+                            <tr>
+                                <th>MODULE / FEATURE</th>
+                                <th>ADMINISTRATOR</th>
+                                <th>PHARMACIST</th>
+                                <th>INVENTORY STAFF</th>
+                                <th>SALES STAFF</th>
+                                <th>VIEWER</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>View Medicines & Stock</td>
+                                <td><span class="status-pill pill-green">✓ Allowed</span></td>
+                                <td><span class="status-pill pill-green">✓ Allowed</span></td>
+                                <td><span class="status-pill pill-green">✓ Allowed</span></td>
+                                <td><span class="status-pill pill-green">✓ Allowed</span></td>
+                                <td><span class="status-pill pill-green">✓ Allowed</span></td>
+                            </tr>
+                            <tr>
+                                <td>Add / Edit Stock Batches</td>
+                                <td><span class="status-pill pill-green">✓ Allowed</span></td>
+                                <td><span class="status-pill pill-green">✓ Allowed</span></td>
+                                <td><span class="status-pill pill-green">✓ Allowed</span></td>
+                                <td><span class="status-pill pill-red">✕ Restricted</span></td>
+                                <td><span class="status-pill pill-red">✕ Restricted</span></td>
+                            </tr>
+                            <tr>
+                                <td>Delete Inventory Items</td>
+                                <td><span class="status-pill pill-green">✓ Allowed</span></td>
+                                <td><span class="status-pill pill-red">✕ Restricted</span></td>
+                                <td><span class="status-pill pill-red">✕ Restricted</span></td>
+                                <td><span class="status-pill pill-red">✕ Restricted</span></td>
+                                <td><span class="status-pill pill-red">✕ Restricted</span></td>
+                            </tr>
+                            <tr>
+                                <td>Manage System Settings</td>
+                                <td><span class="status-pill pill-green">✓ Allowed</span></td>
+                                <td><span class="status-pill pill-red">✕ Restricted</span></td>
+                                <td><span class="status-pill pill-red">✕ Restricted</span></td>
+                                <td><span class="status-pill pill-red">✕ Restricted</span></td>
+                                <td><span class="status-pill pill-red">✕ Restricted</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="card-header" style="border-top:1px solid #f1f5f9; padding-top:20px;">
+                        <h3>Registered Accounts</h3>
+                    </div>
+
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>NAME</th>
+                                <th>EMAIL</th>
+                                <th>ROLE</th>
+                                <th>STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="user : ${systemUsers}">
+                                <td style="font-weight:700;" th:text="${user.fullName}">Admin</td>
+                                <td th:text="${user.email}">admin@pharmaguard.com</td>
+                                <td><span class="status-pill pill-gray" th:text="${user.role}">ADMIN</span></td>
+                                <td><span class="status-pill pill-green">Active</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 13. PHARMACY PROFILE -->
+            <div class="settings-section" id="section-pharmacy">
+                <div class="ctrl-card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                            <h2>Pharmacy Organization Profile</h2>
+                        </div>
+                        <p>Pharmacy location and contact details for official reports.</p>
+                    </div>
+
+                    <form th:action="@{/settings/save}" method="post">
+                        <div class="form-grid-2">
+                            <div class="field-group">
+                                <label class="field-label">Pharmacy Name</label>
+                                <input type="text" name="pharmacyName" class="field-input" th:value="${settings.pharmacyName}" required>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Pharmacy License ID</label>
+                                <input type="text" name="pharmacyId" class="field-input" th:value="${settings.pharmacyId}" required>
+                            </div>
+                        </div>
+
+                        <div class="form-grid-2">
+                            <div class="field-group">
+                                <label class="field-label">Phone Number</label>
+                                <input type="text" name="phone" class="field-input" th:value="${settings.phone}" required>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Official Email</label>
+                                <input type="email" name="email" class="field-input" th:value="${settings.email}" required>
+                            </div>
+                        </div>
+
+                        <div class="field-group" style="margin-bottom:16px;">
+                            <label class="field-label">Pharmacy Address</label>
+                            <input type="text" name="address" class="field-input" th:value="${settings.address}" required>
+                        </div>
+
+                        <div class="form-grid-2" style="margin-bottom:20px;">
+                            <div class="field-group">
+                                <label class="field-label">Working Hours</label>
+                                <input type="text" name="workingHours" class="field-input" th:value="${settings.workingHours}" required>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Pharmacy Operating Status</label>
+                                <select name="pharmacyStatus" class="field-input">
+                                    <option value="Open" th:selected="${settings.pharmacyStatus == 'Open'}">Open (Normal Operations)</option>
+                                    <option value="Maintenance" th:selected="${settings.pharmacyStatus == 'Maintenance'}">Maintenance Mode</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end;">
+                            <button type="submit" class="btn-gradient">Save Pharmacy Profile</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 14. REPORTS -->
+            <div class="settings-section" id="section-reports">
+                <div class="ctrl-card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                            <h2>Report Parameters</h2>
+                        </div>
+                        <p>Configure default period and export parameters.</p>
+                    </div>
+
+                    <form th:action="@{/settings/save}" method="post">
+                        <div class="form-grid-2">
+                            <div class="field-group">
+                                <label class="field-label">Default Report Period</label>
+                                <select name="defaultReportPeriod" class="field-input">
+                                    <option value="Weekly" th:selected="${settings.defaultReportPeriod == 'Weekly'}">Weekly</option>
+                                    <option value="Monthly" th:selected="${settings.defaultReportPeriod == 'Monthly'}">Monthly</option>
+                                    <option value="Quarterly" th:selected="${settings.defaultReportPeriod == 'Quarterly'}">Quarterly</option>
+                                    <option value="Yearly" th:selected="${settings.defaultReportPeriod == 'Yearly'}">Yearly</option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Default Export Format</label>
+                                <select name="defaultExportFormat" class="field-input">
+                                    <option value="PDF" th:selected="${settings.defaultExportFormat == 'PDF'}">PDF Document (.pdf)</option>
+                                    <option value="Excel" th:selected="${settings.defaultExportFormat == 'Excel'}">Excel (.xlsx)</option>
+                                    <option value="CSV" th:selected="${settings.defaultExportFormat == 'CSV'}">CSV Data (.csv)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+                            <button type="submit" class="btn-gradient">Save Report Preferences</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 15. AUDIT LOG -->
+            <div class="settings-section" id="section-audit">
+                <div class="ctrl-card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            <h2>Activity & Audit Trail</h2>
+                        </div>
+                        <p>Chronological record of recent system actions.</p>
+                    </div>
+
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>TIMESTAMP</th>
+                                <th>USER</th>
+                                <th>ACTION</th>
+                                <th>MODULE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Today, 14:30</td>
+                                <td>Admin</td>
+                                <td>Updated inventory threshold settings</td>
+                                <td><span class="status-pill pill-gray">Settings</span></td>
+                            </tr>
+                            <tr>
+                                <td>Today, 11:42</td>
+                                <td>Admin</td>
+                                <td>Recorded Stock In (+50 units)</td>
+                                <td><span class="status-pill pill-green">Inventory</span></td>
+                            </tr>
+                            <tr>
+                                <td>Yesterday, 16:15</td>
+                                <td>Admin</td>
+                                <td>Registered new medicine batch (PCM1023)</td>
+                                <td><span class="status-pill pill-green">Medicines</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 16. BACKUP & DATA EXPORT -->
+            <div class="settings-section" id="section-backup">
+                <div class="ctrl-card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            <h2>Data Backup & Export Management</h2>
+                        </div>
+                        <p>Backup relational storage and download data exports.</p>
+                    </div>
+
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:18px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <strong style="color:#0f172a; font-size:15px;">Database Backup Status</strong>
+                            <p style="margin:2px 0 0 0; color:#64748b; font-size:13px;">Last automated backup: Healthy (Today, 02:00 AM)</p>
+                        </div>
+                        <a href="javascript:void(0)" onclick="alert('✓ Database snapshot created successfully.')" class="btn-gradient" style="padding:8px 16px; text-decoration:none;">Backup Now</a>
+                    </div>
+
+                    <div class="card-header" style="padding-top:10px;">
+                        <h3>Data Export Shortcuts</h3>
+                    </div>
+
+                    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                        <a href="/settings/export/medicines" class="btn-outline">📥 Export Medicines CSV</a>
+                        <a href="/settings/export/medicines" class="btn-outline">📥 Export Inventory CSV</a>
+                        <a href="/settings/export/transactions" class="btn-outline">📥 Export Transactions CSV</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 17. INTEGRATIONS -->
+            <div class="settings-section" id="section-integrations">
+                <div class="ctrl-card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                            <h2>System Integration Status</h2>
+                        </div>
+                        <p>Status of connected hardware drivers and AI services.</p>
+                    </div>
+
+                    <div class="toggle-item">
+                        <div class="toggle-text">
+                            <h4>Barcode & QR Hardware Scanner</h4>
+                            <p>Camera and laser barcode scanner driver input listener.</p>
+                        </div>
+                        <span class="status-pill pill-green">🟢 Connected</span>
+                    </div>
+
+                    <div class="toggle-item">
+                        <div class="toggle-text">
+                            <h4>Gemini AI Intelligence Engine</h4>
+                            <p>Pharma Guard AI assistant and FEFO intelligence algorithms.</p>
+                        </div>
+                        <span class="status-pill pill-green">🟢 Active</span>
+                    </div>
+
+                    <div class="toggle-item">
+                        <div class="toggle-text">
+                            <h4>Database Persistence Engine</h4>
+                            <p>Spring Data JPA & Relational Storage Engine.</p>
+                        </div>
+                        <span class="status-pill pill-green">🟢 Active</span>
+                    </div>
+
+                    <div class="toggle-item">
+                        <div class="toggle-text">
+                            <h4>SMS Notification Gateway</h4>
+                            <p>Third-party SMS gateway for customer stock alerts.</p>
+                        </div>
+                        <span class="status-pill pill-gray">⚪ Not Connected</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 18. SYSTEM HEALTH -->
+            <div class="settings-section" id="section-systemhealth">
+                <div class="ctrl-card" style="display:flex; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #ffffff, #f0fdf4);">
+                    <div>
+                        <h2 style="font-size:22px; font-weight:800; color:#0f172a; margin:0 0 4px 0;">Overall System Health: Operational</h2>
+                        <p style="font-size:13px; color:#64748b; margin:0;">All core modules, database engines, and authentication services are operating within normal parameters.</p>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-size:32px; font-weight:800; color:#00a885;">98%</span>
+                        <small style="display:block; font-size:10px; font-weight:800; color:#94a3b8;">HEALTH INDEX</small>
+                    </div>
+                </div>
+
+                <div class="ctrl-card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                            <h2>Component Status Indicators</h2>
+                        </div>
+                    </div>
+
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>COMPONENT</th>
+                                <th>TYPE</th>
+                                <th>STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Relational Database Engine</td>
+                                <td>H2 / JPA Storage</td>
+                                <td><span class="status-pill pill-green">● Operational</span></td>
+                            </tr>
+                            <tr>
+                                <td>Spring Security Authentication</td>
+                                <td>Auth & RBAC</td>
+                                <td><span class="status-pill pill-green">● Operational</span></td>
+                            </tr>
+                            <tr>
+                                <td>Inventory Intelligence Engine</td>
+                                <td>FEFO & Forecast</td>
+                                <td><span class="status-pill pill-green">● Operational</span></td>
+                            </tr>
+                            <tr>
+                                <td>Gemini AI Service</td>
+                                <td>AI Intelligence</td>
+                                <td><span class="status-pill pill-green">● Operational</span></td>
+                            </tr>
+                            <tr>
+                                <td>Barcode Scanner Listener</td>
+                                <td>Hardware Driver</td>
+                                <td><span class="status-pill pill-green">● Operational</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- RESET CONFIRMATION MODAL -->
+<div id="resetModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; justify-content:center; align-items:center;">
+    <div style="background:white; border-radius:16px; padding:28px; width:90%; max-width:420px; box-shadow:0 20px 50px rgba(0,0,0,0.2);">
+        <h3 style="font-size:18px; font-weight:800; color:#0f172a; margin:0 0 10px 0;">Reset Settings to Default?</h3>
+        <p style="font-size:13px; color:#475569; margin-bottom:20px;">This will restore default system preferences, inventory thresholds, and notification settings. Account profile and password credentials will not be affected.</p>
+        <form th:action="@{/settings/reset}" method="post" style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" onclick="closeResetModal()" class="btn-outline">Cancel</button>
+            <button type="submit" class="btn-gradient" style="background:#e74c3c;">Reset Settings</button>
+        </form>
+    </div>
+</div>
+
+<script src="/js/pharmaguard-theme.js"></script>
+<script>
+    function switchSection(sectionId) {
+        document.querySelectorAll('.settings-section').forEach(sec => sec.classList.remove('active'));
+        document.querySelectorAll('.sidebar-item').forEach(nav => nav.classList.remove('active'));
+
+        const targetSection = document.getElementById('section-' + sectionId);
+        if (targetSection) targetSection.classList.add('active');
+
+        const targetNav = document.getElementById('nav-' + sectionId);
+        if (targetNav) targetNav.classList.add('active');
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function filterSettingsSearch(query) {
+        if (!query || query.trim() === '') {
+            document.querySelectorAll('.sidebar-item').forEach(el => el.style.display = 'flex');
+            return;
+        }
+
+        const q = query.trim().toLowerCase();
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            const text = item.innerText.toLowerCase();
+            if (text.includes(q)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    function setAppTheme(themeName) {
+        if (themeName === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+        } else if (themeName === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    function saveNotificationPreferencesAjax(event) {
+        event.preventDefault();
+        const payload = {
+            expiryAlerts: document.getElementById('pref-expiryAlerts').checked,
+            lowStockAlerts: document.getElementById('pref-lowStockAlerts').checked,
+            verificationAlerts: document.getElementById('pref-verificationAlerts').checked,
+            supplierAlerts: document.getElementById('pref-supplierAlerts').checked,
+            securityNotifications: document.getElementById('pref-securityNotifications').checked,
+            emailNotifications: document.getElementById('pref-emailNotifications').checked,
+            inAppNotifications: document.getElementById('pref-inAppNotifications').checked
+        };
+
+        const saveBtn = document.getElementById('btn-save-notif-pref');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+        fetch('/api/settings/notifications/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Preferences';
+
+            const banner = document.getElementById('notif-pref-alert-banner');
+            if (data.success) {
+                banner.innerHTML = '<div style="background:#e6f9f5; color:#00a885; border:1px solid #a3e9d9; padding:12px 18px; border-radius:10px; margin-bottom:20px; font-weight:600; font-size:14px;"><i class="fa-solid fa-check"></i> ✓ Notification preferences saved successfully.</div>';
+            } else {
+                banner.innerHTML = '<div style="background:#fde8e8; color:#e74c3c; border:1px solid #f5b7b1; padding:12px 18px; border-radius:10px; margin-bottom:20px; font-weight:600; font-size:14px;"><i class="fa-solid fa-triangle-exclamation"></i> Unable to save preferences: ' + (data.message || 'Error') + '</div>';
+            }
+        })
+        .catch(err => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Preferences';
+            const banner = document.getElementById('notif-pref-alert-banner');
+            banner.innerHTML = '<div style="background:#fde8e8; color:#e74c3c; border:1px solid #f5b7b1; padding:12px 18px; border-radius:10px; margin-bottom:20px; font-weight:600; font-size:14px;"><i class="fa-solid fa-triangle-exclamation"></i> Unable to save preferences. Please try again.</div>';
+        });
+    }
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharma Guard — Premium Medicine Safety & Intelligence</title>
+    <link rel="stylesheet" href="/css/pharmaguard-theme.css">
+</head>
+
+<body>
+
+<!-- ==========================================================================
+     STICKY NAVIGATION BAR
+     ========================================================================== -->
+<!-- ==========================================================================
+     MODERN SAAS NAVBAR
+     ========================================================================== -->
+<header class="navbar">
+
+    <!-- LOGO -->
+    <a href="/dashboard" class="brand" style="text-decoration:none;">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3L19 6V11C19 15.5 16.1 19.5 12 21C7.9 19.5 5 15.5 5 11V6L12 3Z" fill="rgba(255,255,255,0.25)" stroke="white" stroke-width="1.5"/>
+                <path d="M12 7V15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M9 11H15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <div class="brand-text">
+            <h2>PHARMA GUARD</h2>
+            <span>VERIFY. PROTECT. STAY SAFE.</span>
+        </div>
+    </a>
+
+
+    <!-- MOBILE MENU BUTTON -->
+    <button type="button" class="menu-btn" onclick="toggleMenu()" title="Toggle navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6H20"/>
+            <path d="M4 12H20"/>
+            <path d="M4 18H20"/>
+        </svg>
+    </button>
+
+
+    <!-- NAVIGATION LINKS -->
+    <nav class="nav-links" id="navLinks">
+
+        <a href="/dashboard" class="nav-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            Dashboard
+        </a>
+
+        <a href="/medicines" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M8 4L20 16"/>
+                <path d="M16 4L4 16"/>
+                <path d="M6 6L18 18"/>
+                <rect x="3" y="3" width="18" height="18" rx="9"/>
+            </svg>
+            Medicines
+        </a>
+
+        <a href="/inventory" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 7L12 3L21 7L12 11L3 7Z"/>
+                <path d="M3 7V17L12 21L21 17V7"/>
+                <path d="M12 11V21"/>
+            </svg>
+            Inventory
+        </a>
+
+        <a href="/transactions" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M8 7H21M8 12H21M8 17H21M3 7H4M3 12H4M3 17H4"/>
+            </svg>
+            Transactions
+        </a>
+
+        <a href="/alerts" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M18 8C18 4.7 15.3 2 12 2C8.7 2 6 4.7 6 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/>
+                <path d="M10 21H14"/>
+            </svg>
+            Alerts
+        </a>
+
+        <a href="/suppliers" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 21V8L12 3L21 8V21"/>
+                <path d="M7 21V12H17V21"/>
+                <path d="M9 16H15"/>
+            </svg>
+            Suppliers
+        </a>
+
+        <a href="/verifications" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M9 11L12 14L22 4"/>
+                <path d="M21 12V19A2 2 0 0119 21H5A2 2 0 013 19V5A2 2 0 015 3H16"/>
+            </svg>
+            Verification History
+        </a>
+
+        <a href="/scan" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 7V3H7"/>
+                <path d="M17 3H21V7"/>
+                <path d="M21 17V21H17"/>
+                <path d="M7 21H3V17"/>
+                <path d="M8 12H16"/>
+            </svg>
+            Scan Medicine
+        </a>
+
+    </nav>
+
+
+    <!-- RIGHT SIDE ACTIONS -->
+    <div class="nav-actions">
+
+        <!-- THEME BUTTON -->
+        <button type="button" class="icon-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">
+            <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 12.8A8.5 8.5 0 1111.2 3 6.5 6.5 0 0021 12.8Z"/>
+            </svg>
+        </button>
+
+        <!-- NOTIFICATION BELL -->
+        <button type="button" class="icon-btn" id="notif-bell-btn" onclick="toggleNotificationDrawer()" title="Notifications" style="position:relative;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M18 8A6 6 0 006 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/>
+                <path d="M10 21H14"/>
+            </svg>
+            <span class="notification-badge" id="nav-notif-badge" th:if="${activeAlertCount > 0}" th:text="${activeAlertCount}">3</span>
+        </button>
+
+        <!-- USER PROFILE DROPDOWN -->
+        <div class="profile" id="profile" onclick="toggleProfile()">
+            <div class="avatar" th:text="${#strings.substring(username != null ? username : 'A', 0, 1).toUpperCase()}">A</div>
+            <div class="profile-info">
+                <strong th:text="${username}">Admin</strong>
+                <small>Administrator</small>
+            </div>
+            <svg class="profile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M6 9L12 15L18 9"/>
+            </svg>
+
+            <!-- PROFILE MENU -->
+            <div class="profile-menu">
+                <a href="/profile">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M4 21C4 16.6 7.6 14 12 14C16.4 14 20 16.6 20 21"/>
+                    </svg>
+                    Profile
+                </a>
+
+                <a href="/settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15A1.7 1.7 0 0020 13.7V10.3A1.7 1.7 0 0019.4 9L17.8 8.4L17 7L17.2 5.3L14.2 3.7L13 4.9L11.5 4.9L10.2 3.7L7.2 5.3L7.4 7L6.6 8.4L5 9L4.4 10.3V13.7L5 15L6.6 15.6L7.4 17L7.2 18.7L10.2 20.3L11.5 19.1H13L14.2 20.3L17.2 18.7L17 17L17.8 15.6L19.4 15Z"/>
+                    </svg>
+                    Settings
+                </a>
+
+                <form th:action="@{/logout}" method="post" style="margin:0;">
+                    <button type="submit" class="logout" style="width:100%; border:none; background:none; text-align:left; cursor:pointer; font-family:inherit;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M10 17L15 12L10 7"/>
+                            <path d="M15 12H3"/>
+                            <path d="M21 19V5C21 3.9 20.1 3 19 3H12"/>
+                        </svg>
+                        Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+</header>
+
+<!-- ==========================================================================
+     MAIN APP CONTAINER
+     ========================================================================== -->
+<div class="app-container">
+
+    <!-- HERO SECTION -->
+    <section class="hero-banner">
+        <div class="hero-content">
+            <h1>Protecting Every Dose.<br/>Protecting Every Life.</h1>
+            <p>AI-powered medicine safety and pharmacy protection that helps you verify medicines, detect potential risks, and make safer decisions.</p>
+            <div class="hero-ctas">
+                <a href="/medicines" class="btn btn-white">💊 View Medicines</a>
+                <a href="/scan" class="btn btn-outline" style="color:#FFF; border-color:rgba(255,255,255,0.4);">📷 Scan Medicine</a>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="shield-card-graphic">
+                <div class="graphic-icon">🛡️💊</div>
+                <div class="graphic-title">AI Safety Shield Active</div>
+                <div class="graphic-subtitle">Continuous Real-Time Audit</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CIRCULAR SAFETY SCORE WIDGET -->
+    <section class="safety-score-card">
+        <div class="score-circle-wrapper">
+            <svg class="score-circle-svg" viewBox="0 0 100 100">
+                <defs>
+                    <linearGradient id="score-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#00A896" />
+                        <stop offset="100%" stop-color="#0B5ED7" />
+                    </linearGradient>
+                </defs>
+                <circle class="circle-bg" cx="50" cy="50" r="45"></circle>
+                <circle class="circle-progress" cx="50" cy="50" r="45"></circle>
+            </svg>
+            <div class="score-number">98%</div>
+        </div>
+        <div class="score-details">
+            <h3>Medicine Safety Score</h3>
+            <p style="color:var(--text-secondary); font-size:14px;">Overall system safety and verification health compliance.</p>
+            <ul class="score-checklist">
+                <li><span>✓</span> Medicines verified against official batch records</li>
+                <li><span>✓</span> No critical contraindications or stock risks flagged</li>
+                <li><span>✓</span> Continuous expiration monitoring active</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- INVENTORY OVERVIEW HEADER -->
+    <div style="margin-bottom:24px;">
+        <h2 class="section-title" style="margin-bottom:4px; font-size:24px; font-weight:800; color:var(--text-primary);">INVENTORY OVERVIEW</h2>
+        <p style="color:var(--text-secondary); font-size:14px; margin:0;">A quick overview of your medicine stock and inventory activity.</p>
+    </div>
+
+    <!-- 1. INVENTORY STATISTICS (4 COMPACT SUMMARY CARDS) -->
+    <div class="stats-grid" style="margin-bottom:32px;">
+        <!-- TOTAL MEDICINES -->
+        <div class="card stat-card">
+            <div class="stat-header">
+                <span class="stat-label">Total Medicines</span>
+                <div class="stat-icon">💊</div>
+            </div>
+            <div class="stat-value" th:text="${totalMedicines}">248</div>
+            <div class="stat-foot" style="color:var(--text-muted); font-size:12px;">Registered medicines</div>
+        </div>
+
+        <!-- TOTAL STOCK -->
+        <div class="card stat-card teal">
+            <div class="stat-header">
+                <span class="stat-label">Total Stock</span>
+                <div class="stat-icon">📦</div>
+            </div>
+            <div class="stat-value" th:text="${totalStock}">4,820</div>
+            <div class="stat-foot" style="color:var(--text-muted); font-size:12px;">Units currently available</div>
+        </div>
+
+        <!-- LOW STOCK -->
+        <div class="card stat-card warning">
+            <div class="stat-header">
+                <span class="stat-label">Low Stock</span>
+                <div class="stat-icon">⚠️</div>
+            </div>
+            <div class="stat-value" th:text="${lowStockCount}">18</div>
+            <div class="stat-foot" style="color:var(--text-muted); font-size:12px;">Medicines requiring restock</div>
+        </div>
+
+        <!-- TODAY'S ACTIVITY -->
+        <div class="card stat-card">
+            <div class="stat-header">
+                <span class="stat-label">Today's Activity</span>
+                <div class="stat-icon">📊</div>
+            </div>
+            <div class="stat-value" th:text="${todaysActivityCount != null ? todaysActivityCount : 0}">32</div>
+            <div class="stat-foot" style="color:var(--text-muted); font-size:12px;">Inventory updates today</div>
+        </div>
+    </div>
+
+    <!-- 2. QUICK ACTIONS SECTION -->
+    <div style="margin-bottom:32px;">
+        <h3 style="font-size:16px; font-weight:700; color:var(--text-primary); margin-bottom:14px;">QUICK ACTIONS</h3>
+        <div class="stats-grid">
+            <a href="/medicines/add" class="card" style="text-decoration:none; padding:18px 20px; transition:all 0.2s ease; border-left:4px solid var(--primary);">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:6px;">
+                    <div style="font-size:20px;">➕</div>
+                    <strong style="font-size:15px; color:var(--text-primary);">Add Medicine</strong>
+                </div>
+                <div style="font-size:12.5px; color:var(--text-secondary);">Register a new medicine</div>
+            </a>
+
+            <a href="/medicines" class="card" style="text-decoration:none; padding:18px 20px; transition:all 0.2s ease; border-left:4px solid #3B82F6;">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:6px;">
+                    <div style="font-size:20px;">📋</div>
+                    <strong style="font-size:15px; color:var(--text-primary);">View Inventory</strong>
+                </div>
+                <div style="font-size:12.5px; color:var(--text-secondary);">Browse all medicines</div>
+            </a>
+
+            <a href="/alerts" class="card" style="text-decoration:none; padding:18px 20px; transition:all 0.2s ease; border-left:4px solid #F59E0B;">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:6px;">
+                    <div style="font-size:20px;">🔔</div>
+                    <strong style="font-size:15px; color:var(--text-primary);">Check Alerts</strong>
+                </div>
+                <div style="font-size:12.5px; color:var(--text-secondary);">Review important notifications</div>
+            </a>
+
+            <a href="/inventory" class="card" style="text-decoration:none; padding:18px 20px; transition:all 0.2s ease; border-left:4px solid #10B981;">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:6px;">
+                    <div style="font-size:20px;">📈</div>
+                    <strong style="font-size:15px; color:var(--text-primary);">Generate Report</strong>
+                </div>
+                <div style="font-size:12.5px; color:var(--text-secondary);">View inventory insights</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- 3. RECENT INVENTORY ACTIVITY PANEL -->
+    <div class="card" style="margin-bottom:32px; padding:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+            <h3 style="font-size:16px; font-weight:700; color:var(--text-primary);">RECENT INVENTORY ACTIVITY</h3>
+            <a href="/transactions" style="font-size:12.5px; font-weight:700; color:var(--primary); text-decoration:none;">View All Activity →</a>
+        </div>
+
+        <div th:if="${recentTransactions != null and !recentTransactions.isEmpty()}" style="display:flex; flex-direction:column; gap:12px;">
+            <div th:each="tx : ${recentTransactions}" style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:var(--bg-surface-hover); border-radius:8px; font-size:13px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="font-size:18px;" th:text="${tx.transactionType == T(com.pharmaguard.enums.TransactionType).STOCK_IN ? '📦' : (tx.transactionType == T(com.pharmaguard.enums.TransactionType).STOCK_OUT ? '🛒' : '✏️')}">📦</div>
+                    <div>
+                        <strong style="color:var(--text-primary); font-size:14px;" th:text="${tx.medicine != null ? tx.medicine.medicineName : 'Medicine Activity'}">Paracetamol 500mg</strong>
+                        <span style="color:var(--text-secondary); margin-left:6px;" th:text="${tx.notes != null ? tx.notes : 'Stock updated'}">was added to inventory</span>
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <span style="font-weight:700; font-size:12px; color:var(--text-muted);" th:text="${#temporals.format(tx.transactionDate, 'dd MMM yyyy • hh:mm a')}">5 minutes ago</span>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${recentTransactions == null or recentTransactions.isEmpty()}" style="display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:var(--bg-surface-hover); border-radius:8px; font-size:13px;">
+                <div>
+                    <strong style="color:var(--text-primary); font-size:14px;">Paracetamol 500mg</strong>
+                    <span style="color:var(--text-secondary); margin-left:6px;">was added to inventory</span>
+                </div>
+                <span style="font-weight:700; font-size:12px; color:var(--text-muted);">5 minutes ago</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:var(--bg-surface-hover); border-radius:8px; font-size:13px;">
+                <div>
+                    <strong style="color:var(--text-primary); font-size:14px;">Amoxicillin 500mg</strong>
+                    <span style="color:var(--text-secondary); margin-left:6px;">quantity changed from 120 → 150</span>
+                </div>
+                <span style="font-weight:700; font-size:12px; color:var(--text-muted);">18 minutes ago</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:var(--bg-surface-hover); border-radius:8px; font-size:13px;">
+                <div>
+                    <strong style="color:var(--text-primary); font-size:14px;">Cetirizine 10mg</strong>
+                    <span style="color:var(--text-secondary); margin-left:6px;">information was updated</span>
+                </div>
+                <span style="font-weight:700; font-size:12px; color:var(--text-muted);">42 minutes ago</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:var(--bg-surface-hover); border-radius:8px; font-size:13px;">
+                <div>
+                    <strong style="color:var(--text-primary); font-size:14px;">Ibuprofen 400mg</strong>
+                    <span style="color:var(--text-secondary); margin-left:6px;">was removed from inventory</span>
+                </div>
+                <span style="font-weight:700; font-size:12px; color:var(--text-muted);">1 hour ago</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MEDICINE SAFETY OVERVIEW (VERIFICATION INTELLIGENCE) -->
+    <h2 class="section-title">🛡️ Medicine Safety Overview</h2>
+    <div class="stats-grid">
+        <div class="card stat-card teal">
+            <div class="stat-header">
+                <span class="stat-label">Verified Medicines</span>
+                <div class="stat-icon">🛡️</div>
+            </div>
+            <div class="stat-value" th:text="${totalVerifications != null ? totalVerifications : 0}">0</div>
+            <a href="/verifications" class="stat-foot">View all history →</a>
+        </div>
+
+        <div class="card stat-card">
+            <div class="stat-header">
+                <span class="stat-label">Low Risk</span>
+                <div class="stat-icon">🟢</div>
+            </div>
+            <div class="stat-value" th:text="${verifLowRiskCount != null ? verifLowRiskCount : 0}">0</div>
+            <a href="/verifications?risk=LOW" class="stat-foot">Filter low risk →</a>
+        </div>
+
+        <div class="card stat-card warning">
+            <div class="stat-header">
+                <span class="stat-label">Warnings</span>
+                <div class="stat-icon">🟡</div>
+            </div>
+            <div class="stat-value" th:text="${verifModerateRiskCount != null ? verifModerateRiskCount : 0}">0</div>
+            <a href="/verifications?risk=MODERATE" class="stat-foot">Filter warnings →</a>
+        </div>
+
+        <div class="card stat-card danger">
+            <div class="stat-header">
+                <span class="stat-label">High Risk / Critical</span>
+                <div class="stat-icon">🔴</div>
+            </div>
+            <div class="stat-value" th:text="${verifHighRiskCount != null ? verifHighRiskCount : 0}">0</div>
+            <a href="/verifications?risk=HIGH" class="stat-foot">Inspect high risk →</a>
+        </div>
+    </div>
+
+    <!-- RECENT VERIFICATIONS SUMMARY TABLE -->
+    <div class="card" style="margin-bottom:32px; padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h3 style="font-size:16px; font-weight:700;">⏱️ Recent Medicine Verifications</h3>
+            <a href="/verifications" class="btn btn-outline btn-sm">View All History →</a>
+        </div>
+
+        <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                <thead>
+                    <tr style="background:var(--bg-surface-hover); text-align:left; color:var(--text-secondary);">
+                        <th style="padding:10px 12px;">Medicine</th>
+                        <th style="padding:10px 12px;">Batch</th>
+                        <th style="padding:10px 12px;">Risk Level</th>
+                        <th style="padding:10px 12px;">Timestamp</th>
+                        <th style="padding:10px 12px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="rv : ${recentVerifications}">
+                        <td style="padding:10px 12px;"><strong th:text="${rv.medicineName}">Paracetamol 500mg</strong></td>
+                        <td style="padding:10px 12px;"><code th:text="${rv.batchNumber}">PCM20260812</code></td>
+                        <td style="padding:10px 12px;">
+                            <span style="display:inline-block; padding:2px 8px; border-radius:10px; font-weight:700; font-size:11px;"
+                                  th:style="${rv.riskLevel == 'LOW' ? 'background:var(--success-bg); color:var(--success);' : (rv.riskLevel == 'MODERATE' ? 'background:var(--warning-bg); color:var(--warning);' : 'background:var(--danger-bg); color:var(--danger);')}"
+                                  th:text="${rv.riskLevel + ' RISK'}">LOW RISK</span>
+                        </td>
+                        <td style="padding:10px 12px; color:var(--text-muted);" th:text="${#temporals.format(rv.createdAt, 'dd MMM yyyy • hh:mm a')}">22 Aug 2026</td>
+                        <td style="padding:10px 12px;"><a th:href="@{'/verification/' + ${rv.id}}" class="btn btn-outline btn-sm">Inspect →</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SMART INTELLIGENCE INDICATORS -->
+    <h2 class="section-title">💡 Smart Inventory Intelligence Indicators</h2>
+    <div class="stats-grid">
+        <div class="card stat-card danger">
+            <div class="stat-header">
+                <span class="stat-label">Stock-Out Risk</span>
+                <div class="stat-icon">⏳</div>
+            </div>
+            <div class="stat-value" th:text="${stockOutRiskCount}">0</div>
+            <a href="/medicines" class="stat-foot">Inspect risks →</a>
+        </div>
+
+        <div class="card stat-card warning">
+            <div class="stat-header">
+                <span class="stat-label">Reorder Recommended</span>
+                <div class="stat-icon">🛒</div>
+            </div>
+            <div class="stat-value" th:text="${reorderRecommendedCount}">0</div>
+            <a href="/medicines" class="stat-foot">View advice →</a>
+        </div>
+
+        <div class="card stat-card">
+            <div class="stat-header">
+                <span class="stat-label">Expiry Waste Risk</span>
+                <div class="stat-icon">📅</div>
+            </div>
+            <div class="stat-value" th:text="${expiryWasteRiskCount}">0</div>
+            <a href="/medicines" class="stat-foot">View forecasts →</a>
+        </div>
+
+        <div class="card stat-card teal">
+            <div class="stat-header">
+                <span class="stat-label">FEFO Recommendations</span>
+                <div class="stat-icon">🔄</div>
+            </div>
+            <div class="stat-value" th:text="${fefoRecommendationCount}">0</div>
+            <a href="/medicines" class="stat-foot">Inspect FEFO →</a>
+        </div>
+    </div>
+
+    <!-- ACTIONABLE SMART RECOMMENDATIONS -->
+    <div class="card" style="margin-bottom:32px;">
+        <h2 class="section-title">⚡ Actionable Smart Recommendations</h2>
+        <div th:if="${smartRecommendations != null and !smartRecommendations.isEmpty()}" style="display:flex; flex-direction:column; gap:12px;">
+            <div th:each="rec : ${smartRecommendations}" style="padding:14px 18px; background:var(--bg-surface-hover); border-left:4px solid var(--primary); border-radius:var(--radius-sm); font-size:14px;">
+                ⚡ <span th:text="${rec}">Recommendation statement</span>
+            </div>
+        </div>
+        <div th:if="${smartRecommendations == null or smartRecommendations.isEmpty()}" style="text-align:center; padding:32px; color:var(--text-muted);">
+            <div style="font-size:36px; margin-bottom:8px;">✅</div>
+            <div>All inventory status metrics are safe and balanced.</div>
+        </div>
+    </div>
+
+    <!-- RECENT ALERTS -->
+    <div class="card">
+        <h2 class="section-title">🚨 Recent Safety Alerts</h2>
+        <div th:if="${recentAlerts != null and !recentAlerts.isEmpty()}">
+            <div th:each="alert : ${recentAlerts}" style="display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--border);">
+                <div>
+                    <strong style="font-size:15px; display:block;" th:text="${alert.medicineName}">Medicine Name</strong>
+                    <span style="font-size:13px; color:var(--text-secondary);" th:text="${alert.message}">Alert message details</span>
+                </div>
+                <div>
+                    <span class="badge badge-warning" th:if="${alert.alertType == 'LOW_STOCK'}">LOW STOCK</span>
+                    <span class="badge badge-danger" th:if="${alert.alertType == 'EXPIRED'}">EXPIRED</span>
+                    <span class="badge badge-info" th:if="${alert.alertType == 'EXPIRING_SOON'}">EXPIRING SOON</span>
+                    <span class="badge badge-danger" th:if="${alert.alertType == 'STOCK_OUT_RISK'}">STOCK-OUT RISK</span>
+                    <span class="badge badge-warning" th:if="${alert.alertType == 'REORDER_RECOMMENDED'}">REORDER</span>
+                </div>
+            </div>
+            <a href="/alerts" style="display:inline-block; margin-top:16px; font-weight:700;">View all alerts →</a>
+        </div>
+        <div th:if="${recentAlerts == null or recentAlerts.isEmpty()}" style="text-align:center; padding:24px; color:var(--text-muted);">
+            No recent active warnings.
+        </div>
+    </div>
+
+</div>
+
+<!-- ==========================================================================
+     MODALS & FLOATING AI WIDGET
+     ========================================================================== -->
+
+<!-- SCANNER MODAL -->
+<div class="modal-backdrop" id="scanner-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">📷 System Camera Barcode Scanner</div>
+            <span id="scanner-status" style="font-size:13px; font-weight:600; color:var(--primary); margin-left:auto; margin-right:12px;"></span>
+            <button type="button" class="modal-close" onclick="closeScannerModal()">✕</button>
+        </div>
+        <p style="font-size:14px; color:var(--text-secondary); margin-bottom:14px;">Point your system camera at a medicine barcode or QR code.</p>
+        <div class="scanner-viewport">
+            <video id="scanner-video" autoplay playsinline style="width:100%; height:100%; object-fit:cover; display:none;"></video>
+            <div class="laser-line"></div>
+            <div class="scanner-overlay" id="scanner-placeholder">Align barcode here</div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="button" class="btn btn-teal" style="flex:1;" onclick="startCamera()">📷 Restart Camera</button>
+            <button type="button" class="btn btn-primary" style="flex:1;" onclick="simulateScan()">⚡ Test Barcode Scan</button>
+            <button type="button" class="btn btn-outline" onclick="closeScannerModal()">Close</button>
+        </div>
+        <div id="scanner-result" style="display:none; margin-top:16px;"></div>
+    </div>
+</div>
+
+<!-- FLOATING PHARMA GUARD AI CHATBOT -->
+<div class="ai-assistant-trigger" onclick="toggleAiChat()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+    AI Assistant
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-content">
+        <div>
+            <strong style="color:var(--text-primary); font-size:16px;">PHARMA GUARD</strong>
+            <div style="font-size:12px; color:var(--text-secondary);">Verify. Protect. Stay Safe.</div>
+        </div>
+        <div style="display:flex; gap:16px; font-weight:600;">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/medicines">Medicines</a>
+            <a href="/alerts">Alerts</a>
+            <a href="/suppliers">Suppliers</a>
+        </div>
+    </div>
+    <div class="footer-disclaimer">
+        Pharma Guard provides informational safety assistance and decision support. It does not replace professional medical advice.
+    </div>
+</footer>
+
+<script src="/js/pharmaguard-theme.js"></script>
+</body>
+</html>
+

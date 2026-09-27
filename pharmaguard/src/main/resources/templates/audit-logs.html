@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharma Guard — Centralized Audit Logs</title>
+    <link rel="stylesheet" href="/css/pharmaguard-theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+<!-- NAVIGATION BAR -->
+<header class="navbar">
+    <a href="/dashboard" class="brand" style="text-decoration:none;">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3L19 6V11C19 15.5 16.1 19.5 12 21C7.9 19.5 5 15.5 5 11V6L12 3Z" fill="rgba(255,255,255,0.25)" stroke="white" stroke-width="1.5"/>
+                <path d="M12 7V15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M9 11H15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="brand-text">
+            <h2>PHARMA GUARD</h2>
+            <span>VERIFY. PROTECT. STAY SAFE.</span>
+        </div>
+    </a>
+
+    <button type="button" class="menu-btn" onclick="toggleMenu()" title="Toggle navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6H20"/><path d="M4 12H20"/><path d="M4 18H20"/>
+        </svg>
+    </button>
+
+    <nav class="nav-links" id="navLinks">
+        <a href="/dashboard" class="nav-link">Dashboard</a>
+        <a href="/medicines" class="nav-link">Medicines</a>
+        <a href="/inventory" class="nav-link">Inventory</a>
+        <a href="/transactions" class="nav-link">Transactions</a>
+        <a href="/alerts" class="nav-link">Alerts</a>
+        <a href="/suppliers" class="nav-link">Suppliers</a>
+        <a href="/scan" class="nav-link">Scan Medicine</a>
+        <a href="/analytics" class="nav-link">Analytics</a>
+        <a href="/security/audit-logs" class="nav-link active">Audit Logs</a>
+    </nav>
+
+    <div class="nav-actions">
+        <button type="button" class="icon-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">
+            <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 12.8A8.5 8.5 0 1111.2 3 6.5 6.5 0 0021 12.8Z"/>
+            </svg>
+        </button>
+        <a href="/alerts" class="icon-btn" title="Notifications" style="text-decoration:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M18 8A6 6 0 006 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/>
+                <path d="M10 21H14"/>
+            </svg>
+        </a>
+
+        <div class="profile" id="profile" onclick="toggleProfile()">
+            <div class="avatar" th:text="${#strings.substring(username != null ? username : 'A', 0, 1).toUpperCase()}">A</div>
+            <div class="profile-info">
+                <strong th:text="${username != null ? username : 'Admin'}">Admin</strong>
+                <small>Administrator</small>
+            </div>
+            <svg class="profile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M6 9L12 15L18 9"/>
+            </svg>
+
+            <div class="profile-menu">
+                <a href="/profile">Profile</a>
+                <a href="/settings">Settings</a>
+                <a href="/security/audit-logs">Audit Logs</a>
+                <a href="/staff">Staff Management</a>
+                <form th:action="@{/logout}" method="post" style="margin:0;">
+                    <button type="submit" class="logout" style="width:100%; border:none; background:none; text-align:left; cursor:pointer; font-family:inherit;">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="app-container">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px;">
+        <div>
+            <h1 style="font-size:28px; font-weight:800; color:var(--text-primary);">📋 Centralized Audit Trail & Activity Logs</h1>
+            <p style="color:var(--text-secondary); font-size:14px;">Immutable event records for system operations, security, inventory, and administrative actions.</p>
+        </div>
+    </div>
+
+    <!-- AUDIT LOGS TABLE -->
+    <div class="card">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Timestamp</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Resource / Module</th>
+                    <th>Details</th>
+                    <th>IP Address</th>
+                    <th>Result</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(auditLogs)}">
+                    <td colspan="8" style="text-align:center; padding:32px; color:var(--text-secondary);">No audit log events recorded yet.</td>
+                </tr>
+                <tr th:each="log : ${auditLogs}">
+                    <td th:text="${log.id}">1</td>
+                    <td th:text="${#temporals.format(log.timestamp, 'yyyy-MM-dd HH:mm:ss')}">2026-08-25 18:20:00</td>
+                    <td>
+                        <strong th:text="${log.username}">Admin</strong>
+                    </td>
+                    <td>
+                        <span class="status-badge" style="background:#e0f2fe; color:#0369a1; font-weight:700; padding:4px 10px; border-radius:12px; font-size:12px;" th:text="${log.action}">ACTION</span>
+                    </td>
+                    <td th:text="${log.resourceType != null ? log.resourceType + ' (' + log.resourceId + ')' : '-'}">Module</td>
+                    <td th:text="${log.details != null ? log.details : '-'}">Details</td>
+                    <td><code th:text="${log.ipAddress}">127.0.0.1</code></td>
+                    <td>
+                        <span style="color:#16a34a; font-weight:700;" th:if="${log.result == 'SUCCESS'}">✓ SUCCESS</span>
+                        <span style="color:#dc2626; font-weight:700;" th:unless="${log.result == 'SUCCESS'}" th:text="${log.result}">FAILED</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="ai-assistant-trigger" onclick="toggleAiChat()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+    AI Assistant
+</div>
+
+<footer class="footer">
+    <div class="footer-content">
+        <div>
+            <strong style="color:var(--text-primary); font-size:16px;">PHARMA GUARD</strong>
+            <div style="font-size:12px; color:var(--text-secondary);">Verify. Protect. Stay Safe.</div>
+        </div>
+    </div>
+</footer>
+
+<script src="/js/pharmaguard-theme.js"></script>
+</body>
+</html>

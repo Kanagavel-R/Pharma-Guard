@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Pharma Guard | Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #f1f5ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 1000px;
+            min-height: 620px;
+            background: white;
+            border-radius: 25px;
+            overflow: hidden;
+            display: flex;
+            box-shadow: 0 20px 50px rgba(40, 50, 100, 0.15);
+        }
+
+        /* =========================
+           LEFT SECTION
+        ========================== */
+
+        .left-section {
+            width: 50%;
+            background: linear-gradient(145deg, #3155d9, #6842d9);
+            color: white;
+            padding: 55px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 25px;
+            font-weight: 700;
+            margin-bottom: 70px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: white;
+            color: #3155d9;
+            border-radius: 14px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 24px;
+        }
+
+        .left-section h1 {
+            font-size: 42px;
+            line-height: 1.15;
+            margin-bottom: 20px;
+        }
+
+        .left-section p {
+            font-size: 16px;
+            line-height: 1.7;
+            opacity: 0.9;
+            max-width: 390px;
+        }
+
+        .features {
+            margin-top: 45px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            font-size: 15px;
+        }
+
+        .check {
+            width: 25px;
+            height: 25px;
+            background: rgba(255,255,255,0.18);
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+        }
+
+        .circle1,
+        .circle2 {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .circle1 {
+            width: 250px;
+            height: 250px;
+            right: -100px;
+            top: -80px;
+        }
+
+        .circle2 {
+            width: 350px;
+            height: 350px;
+            left: -180px;
+            bottom: -180px;
+        }
+
+        /* =========================
+           RIGHT SECTION
+        ========================== */
+
+        .right-section {
+            width: 50%;
+            padding: 55px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .welcome {
+            margin-bottom: 30px;
+        }
+
+        .welcome h2 {
+            color: #172554;
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+
+        .welcome p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        /* =========================
+           FORM
+        ========================== */
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #334155;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .input-box {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: #94a3b8;
+            pointer-events: none;
+        }
+
+        input {
+            width: 100%;
+            height: 50px;
+
+            border: 1px solid #d9def0;
+            border-radius: 10px;
+
+            padding: 0 45px;
+
+            font-size: 14px;
+            color: #334155;
+
+            background: #f8f9ff;
+
+            transition: 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+
+            border-color: #536dfe;
+
+            background: white;
+
+            box-shadow:
+                0 0 0 3px rgba(83, 109, 254, 0.12);
+        }
+
+        /* =========================
+           PASSWORD
+        ========================== */
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+
+            cursor: pointer;
+
+            color: #94a3b8;
+
+            font-size: 15px;
+        }
+
+        .password-toggle:hover {
+            color: #536dfe;
+        }
+
+        /* =========================
+           OPTIONS
+        ========================== */
+
+        .options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            margin: 5px 0 25px;
+        }
+
+        .remember {
+            display: flex;
+            align-items: center;
+
+            gap: 8px;
+
+            color: #64748b;
+
+            font-size: 13px;
+
+            cursor: pointer;
+        }
+
+        .remember input {
+            width: 15px;
+            height: 15px;
+
+            padding: 0;
+
+            accent-color: #536dfe;
+        }
+
+        .forgot {
+            color: #536dfe;
+
+            text-decoration: none;
+
+            font-size: 13px;
+
+            font-weight: 600;
+        }
+
+        .forgot:hover {
+            text-decoration: underline;
+        }
+
+        /* =========================
+           LOGIN BUTTON
+        ========================== */
+
+        .login-btn {
+            width: 100%;
+            height: 52px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #3155d9,
+                    #6842d9
+                );
+
+            color: white;
+
+            font-size: 16px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition: 0.3s;
+
+            box-shadow:
+                0 8px 20px
+                rgba(49, 85, 217, 0.25);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 12px 25px
+                rgba(49, 85, 217, 0.35);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* =========================
+           SECURITY
+        ========================== */
+
+        .security {
+            margin-top: 25px;
+
+            text-align: center;
+
+            font-size: 12px;
+
+            color: #94a3b8;
+        }
+
+        .security span {
+            color: #536dfe;
+        }
+
+        /* =========================
+           ERROR
+        ========================== */
+
+        .error-message {
+            display: none;
+
+            background: #fff1f2;
+
+            color: #e11d48;
+
+            padding: 10px 12px;
+
+            border-radius: 8px;
+
+            font-size: 13px;
+
+            margin-bottom: 15px;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================== */
+
+        @media (max-width: 800px) {
+
+            .container {
+                max-width: 500px;
+            }
+
+            .left-section {
+                display: none;
+            }
+
+            .right-section {
+                width: 100%;
+                padding: 40px;
+            }
+        }
+
+        @media (max-width: 450px) {
+
+            body {
+                padding: 10px;
+            }
+
+            .right-section {
+                padding: 30px 20px;
+            }
+
+            .welcome h2 {
+                font-size: 25px;
+            }
+
+            .options {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- LEFT SECTION -->
+
+    <div class="left-section">
+
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+
+        <a href="/" class="logo">
+
+            <div class="logo-icon">
+                <i class="fa-solid fa-pills"></i>
+            </div>
+
+            Pharma Guard
+
+        </a>
+
+        <h1>
+            Smarter<br>
+            Pharmacy<br>
+            Management
+        </h1>
+
+        <p>
+            Manage medicines, inventory, staff and
+            pharmacy operations securely from one place.
+        </p>
+
+        <div class="features">
+
+            <div class="feature">
+                <div class="check"><i class="fa-solid fa-check"></i></div>
+                Secure role-based access
+            </div>
+
+            <div class="feature">
+                <div class="check"><i class="fa-solid fa-check"></i></div>
+                Medicine & inventory management
+            </div>
+
+            <div class="feature">
+                <div class="check"><i class="fa-solid fa-check"></i></div>
+                Expiry & stock monitoring
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- RIGHT SECTION -->
+
+    <div class="right-section">
+
+        <div class="welcome">
+
+            <h2>
+                Welcome Back
+            </h2>
+
+            <p>
+                Sign in to access your Pharma Guard account.
+            </p>
+
+        </div>
+
+
+        <form th:action="@{/login}" method="post" onsubmit="const btn=this.querySelector('.login-btn'); if(btn){btn.disabled=true; btn.innerHTML='<i class=&quot;fa-solid fa-spinner fa-spin&quot;></i> Signing in...';}">
+
+            <!-- ERROR ALERT FROM SPRING SECURITY -->
+            <div
+                class="error-message"
+                id="errorMessage"
+                th:classappend="${param.error} != null ? 'show' : ''"
+                th:text="${param.error} != null ? 'Invalid email or password. Please try again.' : ''">
+            </div>
+
+            <!-- LOGOUT ALERT -->
+            <div
+                class="error-message show"
+                style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;"
+                th:if="${param.logout} != null">
+                You have been logged out successfully.
+            </div>
+
+            <!-- SUCCESS ALERT FROM SIGNUP -->
+            <div
+                class="error-message show"
+                style="background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;"
+                th:if="${param.success} != null"
+                th:text="${param.success}">
+            </div>
+
+
+            <!-- EMAIL -->
+
+            <div class="form-group">
+
+                <label for="email">
+                    Email Address
+                </label>
+
+                <div class="input-box">
+
+                    <span class="input-icon">
+                        <i class="fa-solid fa-envelope"></i>
+                    </span>
+
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="Enter your email"
+                        autocomplete="off"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- PASSWORD -->
+
+            <div class="form-group">
+
+                <label for="password">
+                    Password
+                </label>
+
+                <div class="input-box">
+
+                    <span class="input-icon">
+                        <i class="fa-solid fa-lock"></i>
+                    </span>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        autocomplete="new-password"
+                        required
+                    >
+
+                    <span
+                        class="password-toggle"
+                        onclick="togglePassword()"
+                        id="eyeIcon">
+
+                        <i class="fa-solid fa-eye"></i>
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- OPTIONS -->
+
+            <div class="options">
+
+                <label class="remember">
+
+                    <input
+                        type="checkbox"
+                        id="remember"
+                        name="remember-me"
+                    >
+
+                    Remember me
+
+                </label>
+
+
+                <a
+                    href="#"
+                    class="forgot"
+                    onclick="forgotPassword()">
+
+                    Forgot Password?
+
+                </a>
+
+            </div>
+
+
+            <!-- LOGIN -->
+
+            <button
+                type="submit"
+                class="login-btn">
+
+                Sign In →
+
+            </button>
+
+            <!-- SIGN UP ROUTE LINK -->
+            <div style="text-align: center; margin-top: 18px; font-size: 13px; color: #64748b;">
+                Don't have an account?
+                <a th:href="@{/signup}" href="/signup" style="color: #3155d9; font-weight: 600; text-decoration: none;">
+                    Create an account
+                </a>
+            </div>
+
+        </form>
+
+
+        <div class="security">
+
+            <i class="fa-solid fa-shield-halved"></i> Your information is protected with
+            <span>secure authentication</span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    window.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("email").value = "";
+        document.getElementById("password").value = "";
+    });
+
+    function togglePassword() {
+
+        const password =
+            document.getElementById("password");
+
+        const eye =
+            document.getElementById("eyeIcon");
+
+        if (password.type === "password") {
+
+            password.type = "text";
+
+            eye.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+
+        } else {
+
+            password.type = "password";
+
+            eye.innerHTML = '<i class="fa-solid fa-eye"></i>';
+
+        }
+
+    }
+
+
+
+
+    function forgotPassword() {
+
+        const email =
+            document.getElementById("email")
+            .value;
+
+        if (email === "") {
+
+            alert(
+                "Please enter your email address first."
+            );
+
+        } else {
+
+            alert(
+                "Password reset link will be sent to:\n" +
+                email
+            );
+
+        }
+
+    }
+
+</script>
+
+</body>
+</html>
+

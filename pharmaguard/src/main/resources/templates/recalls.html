@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharma Guard — Medicine Recall Management</title>
+    <link rel="stylesheet" href="/css/pharmaguard-theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+<!-- NAVIGATION BAR -->
+<header class="navbar">
+    <a href="/dashboard" class="brand" style="text-decoration:none;">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3L19 6V11C19 15.5 16.1 19.5 12 21C7.9 19.5 5 15.5 5 11V6L12 3Z" fill="rgba(255,255,255,0.25)" stroke="white" stroke-width="1.5"/>
+                <path d="M12 7V15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M9 11H15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="brand-text">
+            <h2>PHARMA GUARD</h2>
+            <span>VERIFY. PROTECT. STAY SAFE.</span>
+        </div>
+    </a>
+
+    <button type="button" class="menu-btn" onclick="toggleMenu()" title="Toggle navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6H20"/><path d="M4 12H20"/><path d="M4 18H20"/>
+        </svg>
+    </button>
+
+    <nav class="nav-links" id="navLinks">
+        <a href="/dashboard" class="nav-link">Dashboard</a>
+        <a href="/medicines" class="nav-link active">Medicines</a>
+        <a href="/inventory" class="nav-link">Inventory</a>
+        <a href="/transactions" class="nav-link">Transactions</a>
+        <a href="/alerts" class="nav-link">Alerts</a>
+        <a href="/suppliers" class="nav-link">Suppliers</a>
+        <a href="/scan" class="nav-link">Scan Medicine</a>
+        <a href="/recalls" class="nav-link active">Recalls</a>
+    </nav>
+
+    <div class="nav-actions">
+        <button type="button" class="icon-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">
+            <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 12.8A8.5 8.5 0 1111.2 3 6.5 6.5 0 0021 12.8Z"/>
+            </svg>
+        </button>
+        <a href="/alerts" class="icon-btn" title="Notifications" style="text-decoration:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M18 8A6 6 0 006 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/>
+                <path d="M10 21H14"/>
+            </svg>
+        </a>
+
+        <div class="profile" id="profile" onclick="toggleProfile()">
+            <div class="avatar" th:text="${#strings.substring(username != null ? username : 'A', 0, 1).toUpperCase()}">A</div>
+            <div class="profile-info">
+                <strong th:text="${username != null ? username : 'Admin'}">Admin</strong>
+                <small>Administrator</small>
+            </div>
+            <svg class="profile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M6 9L12 15L18 9"/>
+            </svg>
+
+            <div class="profile-menu">
+                <a href="/profile">Profile</a>
+                <a href="/settings">Settings</a>
+                <a href="/recalls">Medicine Recalls</a>
+                <form th:action="@{/logout}" method="post" style="margin:0;">
+                    <button type="submit" class="logout" style="width:100%; border:none; background:none; text-align:left; cursor:pointer; font-family:inherit;">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="app-container">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px;">
+        <div>
+            <h1 style="font-size:28px; font-weight:800; color:var(--text-primary);">🔄 Medicine Recall Management</h1>
+            <p style="color:var(--text-secondary); font-size:14px;">Monitor, issue, and manage batch safety recalls and affected stock inventory.</p>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="openRecallModal()"><i class="fa-solid fa-triangle-exclamation"></i> Issue Batch Recall</button>
+    </div>
+
+    <!-- METRICS CARDS -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:16px; margin-bottom:24px;">
+        <div class="card" style="padding:20px;">
+            <div style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Active Recalls</div>
+            <div style="font-size:32px; font-weight:800; color:#dc2626; margin-top:6px;" th:text="${activeCount}">0</div>
+        </div>
+        <div class="card" style="padding:20px;">
+            <div style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Total Recall Events</div>
+            <div style="font-size:32px; font-weight:800; color:var(--text-primary); margin-top:6px;" th:text="${#lists.size(recalls)}">0</div>
+        </div>
+    </div>
+
+    <!-- RECALLS TABLE -->
+    <div class="card">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Medicine</th>
+                    <th>Batch No</th>
+                    <th>Manufacturer</th>
+                    <th>Recall Reason</th>
+                    <th>Severity</th>
+                    <th>Affected Stock</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(recalls)}">
+                    <td colspan="9" style="text-align:center; padding:32px; color:var(--text-secondary);">No medicine recalls recorded.</td>
+                </tr>
+                <tr th:each="r : ${recalls}">
+                    <td th:text="${r.id}">1</td>
+                    <td style="font-weight:700;" th:text="${r.medicineName}">Medicine</td>
+                    <td><code th:text="${r.batchNumber}">BATCH</code></td>
+                    <td th:text="${r.manufacturer != null ? r.manufacturer : 'PharmaCorp'}">Manufacturer</td>
+                    <td th:text="${r.recallReason}">Reason</td>
+                    <td>
+                        <span style="background:#fee2e2; color:#dc2626; font-weight:700; padding:4px 10px; border-radius:12px; font-size:12px;" th:text="${r.severity}">HIGH</span>
+                    </td>
+                    <td>
+                        <strong style="color:#dc2626;" th:text="${r.affectedStock + ' units'}">0 units</strong>
+                    </td>
+                    <td>
+                        <span th:if="${r.status == 'ACTIVE'}" style="background:#fee2e2; color:#dc2626; font-weight:700; padding:4px 10px; border-radius:12px; font-size:12px;">ACTIVE RECALL</span>
+                        <span th:unless="${r.status == 'ACTIVE'}" style="background:#dcfce7; color:#15803d; font-weight:700; padding:4px 10px; border-radius:12px; font-size:12px;" th:text="${r.status}">RESOLVED</span>
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:6px;">
+                            <button th:if="${r.status == 'ACTIVE'}" type="button" class="btn btn-outline" style="padding:6px 12px; font-size:12px;" th:onclick="'updateRecallStatus(' + ${r.id} + ', \'RESOLVED\')'">Resolve</button>
+                            <a class="btn btn-secondary" style="padding:6px 12px; font-size:12px;" href="/medicines">View Stock</a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ISSUE RECALL MODAL -->
+<div class="modal-backdrop" id="recallModal" style="display:none;">
+    <div class="modal-content" style="max-width:550px; width:90%;">
+        <div class="modal-header">
+            <div class="modal-title">⚠️ Issue Medicine Batch Recall</div>
+            <button type="button" class="modal-close" onclick="closeRecallModal()">✕</button>
+        </div>
+
+        <div id="recall-alert-banner" style="display:none; margin-bottom:14px;"></div>
+
+        <form onsubmit="submitRecallAjax(event)">
+            <div class="form-group" style="margin-bottom:14px;">
+                <label style="font-size:13px; font-weight:600;">Batch Number <span style="color:red;">*</span></label>
+                <input type="text" id="recall-batch" required placeholder="e.g. PG240501" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border);">
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+                <label style="font-size:13px; font-weight:600;">Medicine Name</label>
+                <input type="text" id="recall-name" placeholder="e.g. Paracetamol 500mg" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border);">
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+                <label style="font-size:13px; font-weight:600;">Recall Reason <span style="color:red;">*</span></label>
+                <textarea id="recall-reason" required placeholder="Describe reason for batch recall..." style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); min-height:80px;"></textarea>
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+                <label style="font-size:13px; font-weight:600;">Severity Level</label>
+                <select id="recall-severity" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border);">
+                    <option value="CRITICAL">🔴 CRITICAL — Stop Distribution Immediately</option>
+                    <option value="HIGH" selected>🟠 HIGH — Potential Health Risk</option>
+                    <option value="MEDIUM">🟡 MEDIUM — Quality / Packaging Defect</option>
+                </select>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <button type="button" class="btn btn-outline" onclick="closeRecallModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger" id="btn-submit-recall">Issue Recall Alert</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="ai-assistant-trigger" onclick="toggleAiChat()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+    AI Assistant
+</div>
+
+<footer class="footer">
+    <div class="footer-content">
+        <div>
+            <strong style="color:var(--text-primary); font-size:16px;">PHARMA GUARD</strong>
+            <div style="font-size:12px; color:var(--text-secondary);">Verify. Protect. Stay Safe.</div>
+        </div>
+    </div>
+</footer>
+
+<script src="/js/pharmaguard-theme.js"></script>
+<script>
+    function openRecallModal() {
+        document.getElementById('recall-batch').value = '';
+        document.getElementById('recall-name').value = '';
+        document.getElementById('recall-reason').value = '';
+        document.getElementById('recall-alert-banner').style.display = 'none';
+        document.getElementById('recallModal').style.display = 'flex';
+    }
+    function closeRecallModal() {
+        document.getElementById('recallModal').style.display = 'none';
+    }
+    function submitRecallAjax(event) {
+        event.preventDefault();
+        const batch = document.getElementById('recall-batch').value.trim();
+        const name = document.getElementById('recall-name').value.trim();
+        const reason = document.getElementById('recall-reason').value.trim();
+        const severity = document.getElementById('recall-severity').value;
+
+        const payload = {
+            batchNumber: batch,
+            medicineName: name || 'Scanned Medicine',
+            recallReason: reason,
+            severity: severity
+        };
+
+        const btn = document.getElementById('btn-submit-recall');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Issuing...';
+
+        fetch('/api/recalls/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = 'Issue Recall Alert';
+            if (data.success) {
+                closeRecallModal();
+                window.location.reload();
+            } else {
+                const banner = document.getElementById('recall-alert-banner');
+                banner.style.display = 'block';
+                banner.innerHTML = `<div style="padding:10px; background:#fde8e8; color:#dc2626; border-radius:8px; font-weight:600; font-size:13px;">${data.message}</div>`;
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = 'Issue Recall Alert';
+        });
+    }
+    function updateRecallStatus(id, status) {
+        if (!confirm('Mark recall as resolved?')) return;
+        fetch('/api/recalls/' + id + '/status?status=' + status, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                window.location.reload();
+            });
+    }
+</script>
+</body>
+</html>

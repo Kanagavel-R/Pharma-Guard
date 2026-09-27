@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharma Guard — Medicine Form</title>
+    <link rel="stylesheet" href="/css/pharmaguard-theme.css">
+</head>
+
+<body>
+
+<!-- NAVIGATION BAR -->
+<!-- ==========================================================================
+     MODERN SAAS NAVBAR
+     ========================================================================== -->
+<header class="navbar">
+
+    <!-- LOGO -->
+    <a href="/dashboard" class="brand" style="text-decoration:none;">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3L19 6V11C19 15.5 16.1 19.5 12 21C7.9 19.5 5 15.5 5 11V6L12 3Z" fill="rgba(255,255,255,0.25)" stroke="white" stroke-width="1.5"/>
+                <path d="M12 7V15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M9 11H15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <div class="brand-text">
+            <h2>PHARMA GUARD</h2>
+            <span>VERIFY. PROTECT. STAY SAFE.</span>
+        </div>
+    </a>
+
+
+    <!-- MOBILE MENU BUTTON -->
+    <button type="button" class="menu-btn" onclick="toggleMenu()" title="Toggle navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6H20"/>
+            <path d="M4 12H20"/>
+            <path d="M4 18H20"/>
+        </svg>
+    </button>
+
+
+    <!-- NAVIGATION LINKS -->
+    <nav class="nav-links" id="navLinks">
+
+        <a href="/dashboard" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            Dashboard
+        </a>
+
+        <a href="/medicines" class="nav-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M8 4L20 16"/>
+                <path d="M16 4L4 16"/>
+                <path d="M6 6L18 18"/>
+                <rect x="3" y="3" width="18" height="18" rx="9"/>
+            </svg>
+            Medicines
+        </a>
+
+        <a href="/inventory" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 7L12 3L21 7L12 11L3 7Z"/>
+                <path d="M3 7V17L12 21L21 17V7"/>
+                <path d="M12 11V21"/>
+            </svg>
+            Inventory
+        </a>
+
+        <a href="/transactions" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M8 7H21M8 12H21M8 17H21M3 7H4M3 12H4M3 17H4"/>
+            </svg>
+            Transactions
+        </a>
+
+        <a href="/alerts" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M18 8C18 4.7 15.3 2 12 2C8.7 2 6 4.7 6 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/>
+                <path d="M10 21H14"/>
+            </svg>
+            Alerts
+        </a>
+
+        <a href="/suppliers" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 21V8L12 3L21 8V21"/>
+                <path d="M7 21V12H17V21"/>
+                <path d="M9 16H15"/>
+            </svg>
+            Suppliers
+        </a>
+
+        <a href="/scan" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 7V3H7"/>
+                <path d="M17 3H21V7"/>
+                <path d="M21 17V21H17"/>
+                <path d="M7 21H3V17"/>
+                <path d="M8 12H16"/>
+            </svg>
+            Scan Medicine
+        </a>
+
+    </nav>
+
+
+    <!-- RIGHT SIDE ACTIONS -->
+    <div class="nav-actions">
+
+        <!-- THEME BUTTON -->
+        <button type="button" class="icon-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">
+            <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 12.8A8.5 8.5 0 1111.2 3 6.5 6.5 0 0021 12.8Z"/>
+            </svg>
+        </button>
+
+        <!-- NOTIFICATION BELL -->
+        <a href="/alerts" class="icon-btn" title="Notifications" style="text-decoration:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M18 8A6 6 0 006 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/>
+                <path d="M10 21H14"/>
+            </svg>
+            <span class="notification-badge" th:if="${activeAlertCount != null and activeAlertCount > 0}" th:text="${activeAlertCount}">3</span>
+        </a>
+
+        <!-- USER PROFILE DROPDOWN -->
+        <div class="profile" id="profile" onclick="toggleProfile()">
+            <div class="avatar" th:text="${#strings.substring(username != null ? username : 'A', 0, 1).toUpperCase()}">A</div>
+            <div class="profile-info">
+                <strong th:text="${username != null ? username : 'Admin'}">Admin</strong>
+                <small>Administrator</small>
+            </div>
+            <svg class="profile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M6 9L12 15L18 9"/>
+            </svg>
+
+            <!-- PROFILE MENU -->
+            <div class="profile-menu">
+                <a href="/profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M4 21C4 16.6 7.6 14 12 14C16.4 14 20 16.6 20 21"/>
+                    </svg>
+                    Profile
+                </a>
+
+                <a href="/settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15A1.7 1.7 0 0020 13.7V10.3A1.7 1.7 0 0019.4 9L17.8 8.4L17 7L17.2 5.3L14.2 3.7L13 4.9L11.5 4.9L10.2 3.7L7.2 5.3L7.4 7L6.6 8.4L5 9L4.4 10.3V13.7L5 15L6.6 15.6L7.4 17L7.2 18.7L10.2 20.3L11.5 19.1H13L14.2 20.3L17.2 18.7L17 17L17.8 15.6L19.4 15Z"/>
+                    </svg>
+                    Settings
+                </a>
+
+                <form th:action="@{/logout}" method="post" style="margin:0;">
+                    <button type="submit" class="logout" style="width:100%; border:none; background:none; text-align:left; cursor:pointer; font-family:inherit;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M10 17L15 12L10 7"/>
+                            <path d="M15 12H3"/>
+                            <path d="M21 19V5C21 3.9 20.1 3 19 3H12"/>
+                        </svg>
+                        Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+</header>
+
+<div class="app-container">
+
+    <div style="max-width:850px; margin:0 auto;">
+        <div class="card">
+            <h1 style="font-size:24px; font-weight:800; color:var(--text-primary); margin-bottom:6px;"
+                th:text="${medicine.id == null ? 'Add New Medicine' : 'Edit Medicine'}">
+                Add New Medicine
+            </h1>
+            <p style="color:var(--text-secondary); font-size:14px; margin-bottom:28px;">Register and manage medicine inventory details and supply chain parameters.</p>
+
+            <!-- ERROR BANNER -->
+            <div th:if="${errorMessage}" style="padding:14px 18px; background:#fde8e8; color:#e74c3c; border:1px solid #f5b7b1; border-radius:var(--radius-sm); margin-bottom:20px; font-weight:600; font-size:14px;">
+                <i class="fa-solid fa-circle-exclamation"></i> <span th:text="${errorMessage}">Error occurred</span>
+            </div>
+
+            <form th:action="@{/medicines/save}" th:object="${medicine}" method="post" id="medicineForm" onsubmit="handleFormSubmit(event, this)">
+                <input type="hidden" th:field="*{id}" />
+
+                <div class="form-grid">
+
+                    <!-- MEDICINE NAME -->
+                    <div class="form-group">
+                        <label for="medicineName">Medicine Name <span class="required">*</span></label>
+                        <input type="text" id="medicineName" th:field="*{medicineName}" placeholder="Enter medicine name" required>
+                        <div class="error-text" th:if="${#fields.hasErrors('medicineName')}" th:errors="*{medicineName}"></div>
+                    </div>
+
+                    <!-- CATEGORY -->
+                    <div class="form-group">
+                        <label for="category">Category <span class="required">*</span></label>
+                        <input type="text" id="category" th:field="*{category}" placeholder="e.g. Antibiotic" required>
+                        <div class="error-text" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
+                    </div>
+
+                    <!-- BATCH NUMBER -->
+                    <div class="form-group">
+                        <label for="batchNumber">Batch Number <span class="required">*</span></label>
+                        <input type="text" id="batchNumber" th:field="*{batchNumber}" placeholder="Enter batch number" required>
+                        <div class="error-text" th:if="${#fields.hasErrors('batchNumber')}" th:errors="*{batchNumber}"></div>
+                    </div>
+
+                    <!-- QUANTITY -->
+                    <div class="form-group">
+                        <label for="quantity">Quantity <span class="required">*</span></label>
+                        <input type="number" id="quantity" th:field="*{quantity}" min="0" placeholder="Enter quantity" required>
+                        <div class="error-text" th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}"></div>
+                    </div>
+
+                    <!-- PRICE -->
+                    <div class="form-group">
+                        <label for="price">Price (₹) <span class="required">*</span></label>
+                        <input type="number" id="price" th:field="*{price}" min="0.01" step="0.01" placeholder="Enter price" required>
+                        <div class="error-text" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
+                    </div>
+
+                    <!-- EXPIRY DATE -->
+                    <div class="form-group">
+                        <label for="expiryDate">Expiry Date <span class="required">*</span></label>
+                        <input type="date" id="expiryDate" th:field="*{expiryDate}" required>
+                        <div class="error-text" th:if="${#fields.hasErrors('expiryDate')}" th:errors="*{expiryDate}"></div>
+                    </div>
+
+                    <!-- REORDER LEVEL -->
+                    <div class="form-group">
+                        <label for="reorderLevel">Minimum Reorder Level <span class="required">*</span></label>
+                        <input type="number" id="reorderLevel" th:field="*{reorderLevel}" min="0" placeholder="e.g. 20" required>
+                        <div class="error-text" th:if="${#fields.hasErrors('reorderLevel')}" th:errors="*{reorderLevel}"></div>
+                    </div>
+
+                    <!-- SUPPLIER NAME -->
+                    <div class="form-group">
+                        <label for="supplierName">Supplier Name</label>
+                        <input type="text" id="supplierName" th:field="*{supplierName}" placeholder="Enter supplier name">
+                        <div class="error-text" th:if="${#fields.hasErrors('supplierName')}" th:errors="*{supplierName}"></div>
+                    </div>
+
+                    <!-- SUPPLIER LEAD TIME -->
+                    <div class="form-group">
+                        <label for="leadTimeDays">Supplier Lead Time (Days)</label>
+                        <input type="number" id="leadTimeDays" th:field="*{leadTimeDays}" min="0" placeholder="Default 7 days">
+                        <div class="error-text" th:if="${#fields.hasErrors('leadTimeDays')}" th:errors="*{leadTimeDays}"></div>
+                    </div>
+
+                    <!-- SAFETY STOCK -->
+                    <div class="form-group">
+                        <label for="safetyStock">Safety Stock Buffer (Units)</label>
+                        <input type="number" id="safetyStock" th:field="*{safetyStock}" min="0" placeholder="Default 10 units">
+                        <div class="error-text" th:if="${#fields.hasErrors('safetyStock')}" th:errors="*{safetyStock}"></div>
+                    </div>
+
+                </div>
+
+                <div style="margin-top:32px; display:flex; gap:14px;">
+                    <button type="submit" class="btn btn-primary" id="btnSaveMedicine">💾 Save Medicine</button>
+                    <a href="/medicines" class="btn btn-outline">← Back to Medicines</a>
+                </div>
+
+            </form>
+            <script>
+                function handleFormSubmit(event, form) {
+                    const btn = document.getElementById('btnSaveMedicine');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+                    }
+                }
+            </script>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODALS & AI WIDGET -->
+<div class="modal-backdrop" id="scanner-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">📷 Scan & Verify Medicine Barcode</div>
+            <button type="button" class="modal-close" onclick="closeScannerModal()">✕</button>
+        </div>
+        <p style="font-size:14px; color:var(--text-secondary); margin-bottom:14px;">Align the medicine barcode or QR code inside the camera frame below.</p>
+        <div class="scanner-viewport">
+            <video id="scanner-video" autoplay playsinline style="width:100%; height:100%; object-fit:cover; display:none;"></video>
+            <div class="laser-line"></div>
+            <div class="scanner-overlay" id="scanner-placeholder">Align barcode here</div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="button" class="btn btn-teal" style="flex:1;" onclick="startCamera()">📷 Open Camera</button>
+            <button type="button" class="btn btn-primary" style="flex:1;" onclick="simulateScan()">⚡ Scan Barcode</button>
+            <button type="button" class="btn btn-outline" onclick="closeScannerModal()">Cancel</button>
+        </div>
+        <div id="scanner-result" style="display:none; margin-top:16px;"></div>
+    </div>
+</div>
+
+<div class="ai-assistant-trigger" onclick="toggleAiChat()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+    AI Assistant
+</div>
+
+<footer class="footer">
+    <div class="footer-content">
+        <div>
+            <strong style="color:var(--text-primary); font-size:16px;">PHARMA GUARD</strong>
+            <div style="font-size:12px; color:var(--text-secondary);">Verify. Protect. Stay Safe.</div>
+        </div>
+    </div>
+</footer>
+
+<script src="/js/pharmaguard-theme.js"></script>
+</body>
+</html>
+

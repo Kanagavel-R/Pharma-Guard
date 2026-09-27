@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharma Guard — AI Operations & Safety Assistant</title>
+    <link rel="stylesheet" href="/css/pharmaguard-theme.css">
+    <style>
+        .ai-page-container {
+            max-width: 1200px;
+            margin: 24px auto;
+            padding: 0 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .ai-header-card {
+            background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #312E81 100%);
+            color: #FFFFFF;
+            border-radius: 16px;
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .ai-header-info h1 {
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0 0 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #FFFFFF;
+        }
+
+        .ai-header-info p {
+            margin: 0;
+            font-size: 14px;
+            color: #94A3B8;
+        }
+
+        .ai-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34D399;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .ai-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #10B981;
+            box-shadow: 0 0 8px #10B981;
+        }
+
+        .ai-chat-window {
+            background: var(--bg-card, #FFFFFF);
+            border: 1px solid var(--border-color, #E2E8F0);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 270px);
+            min-height: 520px;
+            overflow: hidden;
+        }
+
+        .ai-chat-messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            background: var(--bg-surface, #F8FAFC);
+        }
+
+        .welcome-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .welcome-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .welcome-card:hover {
+            border-color: #4F46E5;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px -4px rgba(79, 70, 229, 0.12);
+        }
+
+        .welcome-card-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: #EEF2FF;
+            color: #4F46E5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .welcome-card-content h4 {
+            margin: 0 0 4px 0;
+            font-size: 14px;
+            font-weight: 700;
+            color: #1E293B;
+        }
+
+        .welcome-card-content p {
+            margin: 0;
+            font-size: 12px;
+            color: #64748B;
+        }
+
+        .msg-row {
+            display: flex;
+            gap: 12px;
+            max-width: 85%;
+        }
+
+        .msg-row.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .msg-row.bot {
+            align-self: flex-start;
+        }
+
+        .msg-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .msg-avatar.bot {
+            background: linear-gradient(135deg, #4F46E5, #312E81);
+            color: #FFFFFF;
+        }
+
+        .msg-avatar.user {
+            background: #0284C7;
+            color: #FFFFFF;
+        }
+
+        .msg-bubble {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 14px;
+            padding: 14px 18px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #1E293B;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+            position: relative;
+        }
+
+        .msg-row.user .msg-bubble {
+            background: #4F46E5;
+            color: #FFFFFF;
+            border-color: #4338CA;
+            border-top-right-radius: 2px;
+        }
+
+        .msg-row.bot .msg-bubble {
+            border-top-left-radius: 2px;
+        }
+
+        .msg-source {
+            font-size: 11px;
+            color: #64748B;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #CBD5E1;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .data-table th {
+            background: #F1F5F9;
+            color: #1E293B;
+            font-weight: 700;
+        }
+
+        .metric-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .metric-item {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 10px 14px;
+        }
+
+        .metric-item-val {
+            font-size: 18px;
+            font-weight: 800;
+            color: #1E293B;
+        }
+
+        .metric-item-lbl {
+            font-size: 11px;
+            color: #64748B;
+            font-weight: 600;
+        }
+
+        .action-confirm-box {
+            background: #FEF2F2;
+            border: 1.5px solid #EF4444;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+
+        .action-confirm-title {
+            font-weight: 800;
+            color: #991B1B;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .action-confirm-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .ai-chat-input-area {
+            border-top: 1px solid var(--border-color, #E2E8F0);
+            background: #FFFFFF;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .ai-chat-input {
+            flex: 1;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 24px;
+            padding: 12px 20px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .ai-chat-input:focus {
+            border-color: #4F46E5;
+        }
+
+        .ai-send-btn {
+            background: #4F46E5;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .ai-send-btn:hover {
+            background: #4338CA;
+        }
+
+        .disclaimer-bar {
+            font-size: 11px;
+            color: #94A3B8;
+            text-align: center;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar">
+    <a href="/dashboard" class="brand" style="text-decoration:none;">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3L19 6V11C19 15.5 16.1 19.5 12 21C7.9 19.5 5 15.5 5 11V6L12 3Z" fill="rgba(255,255,255,0.25)" stroke="white" stroke-width="1.5"/>
+                <path d="M12 7V15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M9 11H15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="brand-text">
+            <h2>PHARMA GUARD</h2>
+            <span>VERIFY. PROTECT. STAY SAFE.</span>
+        </div>
+    </a>
+
+    <nav class="nav-links" id="navLinks">
+        <a href="/dashboard" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Dashboard
+        </a>
+        <a href="/medicines" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 4L20 16"/><path d="M16 4L4 16"/><path d="M6 6L18 18"/><rect x="3" y="3" width="18" height="18" rx="9"/></svg>
+            Medicines
+        </a>
+        <a href="/inventory" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7L12 3L21 7L12 11L3 7Z"/><path d="M3 7V17L12 21L21 17V7"/><path d="M12 11V21"/></svg>
+            Inventory
+        </a>
+        <a href="/alerts" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8C18 4.7 15.3 2 12 2C8.7 2 6 4.7 6 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/><path d="M10 21H14"/></svg>
+            Alerts
+        </a>
+        <a href="/suppliers" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 21V8L12 3L21 8V21"/><path d="M7 21V12H17V21"/><path d="M9 16H15"/></svg>
+            Suppliers
+        </a>
+    </nav>
+</header>
+
+<div class="ai-page-container">
+
+    <!-- HEADER CARD -->
+    <div class="ai-header-card">
+        <div class="ai-header-info">
+            <h1>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/><path d="M12 6v6l4 2"/><path d="M9 12h6"/></svg>
+                Pharma Guard AI Operations Assistant
+            </h1>
+            <p>Intelligent, database-aware assistance for inventory, expiry policies, FEFO enforcement, and safety compliance.</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div class="ai-status-badge">
+                <div class="ai-status-dot"></div>
+                AI Engine Online
+            </div>
+            <button type="button" class="btn btn-outline" style="color:#FFF; border-color:rgba(255,255,255,0.3); font-size:12px;" onclick="clearAiChatHistory()">Clear Chat</button>
+        </div>
+    </div>
+
+    <!-- MAIN CHAT WINDOW -->
+    <div class="ai-chat-window">
+        <div class="ai-chat-messages" id="aiPageMessageContainer">
+            
+            <!-- WELCOME SCREEN STATE -->
+            <div id="aiWelcomeScreen" style="margin:auto 0; text-align:center; max-width:800px; margin-left:auto; margin-right:auto; width:100%;">
+                <div style="width:60px; height:60px; border-radius:50%; background:#EEF2FF; color:#4F46E5; display:inline-flex; align-items:center; justify-content:center; margin-bottom:16px;">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                </div>
+                <h2 style="font-size:22px; font-weight:800; color:#1E293B; margin-bottom:8px;">How can I assist your pharmacy today?</h2>
+                <p style="color:#64748B; font-size:14px; margin-bottom:24px;">Ask questions or run operational queries connected directly to your Pharma Guard database.</p>
+
+                <div class="welcome-grid">
+                    <div class="welcome-card" onclick="sendAiPageQuery('Check low stock medicines')">
+                        <div class="welcome-card-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        </div>
+                        <div class="welcome-card-content">
+                            <h4>Check Low Stock</h4>
+                            <p>Query medicines currently below safety reorder levels.</p>
+                        </div>
+                    </div>
+
+                    <div class="welcome-card" onclick="sendAiPageQuery('Which medicines are expiring soon?')">
+                        <div class="welcome-card-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <div class="welcome-card-content">
+                            <h4>Expiring Medicines</h4>
+                            <p>Retrieve items expiring within 30 days under FEFO guidance.</p>
+                        </div>
+                    </div>
+
+                    <div class="welcome-card" onclick="sendAiPageQuery('Show active system alerts')">
+                        <div class="welcome-card-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8C18 4.7 15.3 2 12 2C8.7 2 6 4.7 6 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/><path d="M10 21H14"/></svg>
+                        </div>
+                        <div class="welcome-card-content">
+                            <h4>Active Alerts</h4>
+                            <p>View unhandled system warnings and critical notifications.</p>
+                        </div>
+                    </div>
+
+                    <div class="welcome-card" onclick="sendAiPageQuery('Give me an inventory overview summary')">
+                        <div class="welcome-card-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                        </div>
+                        <div class="welcome-card-content">
+                            <h4>Inventory Summary</h4>
+                            <p>Get overall stock counts, categories, and safety totals.</p>
+                        </div>
+                    </div>
+
+                    <div class="welcome-card" onclick="sendAiPageQuery('Show verification safety scores')">
+                        <div class="welcome-card-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11L12 14L22 4"/><path d="M21 12V19A2 2 0 0119 21H5A2 2 0 013 19V5A2 2 0 015 3H16"/></svg>
+                        </div>
+                        <div class="welcome-card-content">
+                            <h4>Verification Intelligence</h4>
+                            <p>Audit barcode verification signals and risk levels.</p>
+                        </div>
+                    </div>
+
+                    <div class="welcome-card" onclick="sendAiPageQuery('Show recent stock transactions')">
+                        <div class="welcome-card-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        </div>
+                        <div class="welcome-card-content">
+                            <h4>Recent Transactions</h4>
+                            <p>Inspect latest stock movement logs and user activity.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- INPUT AREA -->
+        <div class="ai-chat-input-area">
+            <div class="input-row">
+                <input type="text" id="aiPageInput" class="ai-chat-input" placeholder="Ask about medicines, inventory, alerts, or pharmacy operations..." onkeypress="if(event.key==='Enter') submitAiPageQuery()">
+                <button type="button" class="ai-send-btn" onclick="submitAiPageQuery()" title="Send query">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+            </div>
+            <div class="disclaimer-bar">
+                Pharma Guard AI provides operational decision support and inventory intelligence. For patient medical decisions or drug administration, always consult a licensed healthcare professional.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/pharmaguard-theme.js"></script>
+<script>
+    function submitAiPageQuery() {
+        const input = document.getElementById('aiPageInput');
+        if (!input || !input.value.trim()) return;
+        const prompt = input.value.trim();
+        input.value = '';
+        sendAiPageQuery(prompt);
+    }
+
+    function sendAiPageQuery(promptText) {
+        const welcome = document.getElementById('aiWelcomeScreen');
+        if (welcome) welcome.style.display = 'none';
+
+        const container = document.getElementById('aiPageMessageContainer');
+        if (!container) return;
+
+        // User message
+        const userRow = document.createElement('div');
+        userRow.className = 'msg-row user';
+        userRow.innerHTML = `
+            <div class="msg-avatar user">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="msg-bubble">${escapeHtml(promptText)}</div>
+        `;
+        container.appendChild(userRow);
+
+        // Loading message
+        const loadingRow = document.createElement('div');
+        loadingRow.className = 'msg-row bot';
+        loadingRow.id = 'aiPageLoadingMsg';
+        loadingRow.innerHTML = `
+            <div class="msg-avatar bot">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div class="msg-bubble" style="color:#64748B; font-style:italic;">
+                Pharma Guard AI is analyzing real-time pharmacy records...
+            </div>
+        `;
+        container.appendChild(loadingRow);
+        container.scrollTop = container.scrollHeight;
+
+        // Fetch API
+        fetch('/api/ai/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: promptText })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const l = document.getElementById('aiPageLoadingMsg');
+            if (l) l.remove();
+
+            renderAiPageResponse(data, container);
+        })
+        .catch(err => {
+            const l = document.getElementById('aiPageLoadingMsg');
+            if (l) l.remove();
+
+            const errRow = document.createElement('div');
+            errRow.className = 'msg-row bot';
+            errRow.innerHTML = `
+                <div class="msg-avatar bot" style="background:#EF4444;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <div class="msg-bubble" style="background:#FEF2F2; color:#991B1B; border-color:#FCA5A5;">
+                    Pharma Guard AI is temporarily unavailable. Your pharmacy data and other application features remain fully operational.
+                </div>
+            `;
+            container.appendChild(errRow);
+            container.scrollTop = container.scrollHeight;
+        });
+    }
+
+    function renderAiPageResponse(data, container) {
+        const botRow = document.createElement('div');
+        botRow.className = 'msg-row bot';
+
+        let html = formatMarkdownText(data.reply || '');
+
+        // Render Table if provided
+        if (data.responseType === 'TABLE' && data.tableHeaders && data.tableRows) {
+            html += '<table class="data-table"><thead><tr>';
+            data.tableHeaders.forEach(h => html += `<th>${escapeHtml(h)}</th>`);
+            html += '</tr></thead><tbody>';
+            data.tableRows.forEach(row => {
+                html += '<tr>';
+                row.forEach(cell => html += `<td>${escapeHtml(cell)}</td>`);
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+        }
+
+        // Render Cards if provided
+        if (data.responseType === 'CARDS' && data.cardMetrics) {
+            html += '<div class="metric-cards-grid">';
+            for (let [k, v] of Object.entries(data.cardMetrics)) {
+                html += `<div class="metric-item"><div class="metric-item-val">${escapeHtml(String(v))}</div><div class="metric-item-lbl">${escapeHtml(k)}</div></div>`;
+            }
+            html += '</div>';
+        }
+
+        // Action Proposal Confirmation Block
+        if (data.responseType === 'ACTION_REQUIRED' && data.actionProposal) {
+            const prop = data.actionProposal;
+            html += `
+                <div class="action-confirm-box">
+                    <div class="action-confirm-title">${escapeHtml(prop.description || 'Action Confirmation')}</div>
+                    <div style="font-size:13px; color:#475569;">${escapeHtml(prop.confirmationMessage || '')}</div>
+                    <div class="action-confirm-btns">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="executeAiPageAction('${escapeHtml(prop.actionType)}', ${prop.targetEntityId}, ${escapeHtml(JSON.stringify(prop.parameters || {}))}, this)">${escapeHtml(prop.confirmButtonText || 'Confirm')}</button>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="this.closest('.action-confirm-box').remove()">${escapeHtml(prop.cancelButtonText || 'Cancel')}</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Provenance source tag
+        if (data.sourceData) {
+            html += `<div class="msg-source"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> ${escapeHtml(data.sourceData)}</div>`;
+        }
+
+        botRow.innerHTML = `
+            <div class="msg-avatar bot">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/><path d="M12 6v6l4 2"/><path d="M9 12h6"/></svg>
+            </div>
+            <div class="msg-bubble">${html}</div>
+        `;
+        container.appendChild(botRow);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function executeAiPageAction(actionType, targetEntityId, params, btn) {
+        btn.disabled = true;
+        btn.innerText = 'Processing...';
+
+        fetch('/api/ai/execute-action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ actionType: actionType, targetEntityId: targetEntityId, parameters: params })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const box = btn.closest('.action-confirm-box');
+            if (box) {
+                box.innerHTML = `<div style="color:#059669; font-weight:700; font-size:13px;">${escapeHtml(data.reply || 'Action executed successfully.')}</div>`;
+            }
+        })
+        .catch(err => {
+            alert('Action failed: ' + err.message);
+            btn.disabled = false;
+            btn.innerText = 'Confirm';
+        });
+    }
+
+    function clearAiChatHistory() {
+        fetch('/api/ai/clear-history', { method: 'POST' })
+            .then(() => {
+                const container = document.getElementById('aiPageMessageContainer');
+                if (container) {
+                    container.innerHTML = `
+                        <div id="aiWelcomeScreen" style="margin:auto 0; text-align:center; max-width:800px; margin-left:auto; margin-right:auto; width:100%;">
+                            <div style="width:60px; height:60px; border-radius:50%; background:#EEF2FF; color:#4F46E5; display:inline-flex; align-items:center; justify-content:center; margin-bottom:16px;">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                            </div>
+                            <h2 style="font-size:22px; font-weight:800; color:#1E293B; margin-bottom:8px;">How can I assist your pharmacy today?</h2>
+                            <p style="color:#64748B; font-size:14px; margin-bottom:24px;">Ask questions or run operational queries connected directly to your Pharma Guard database.</p>
+                        </div>
+                    `;
+                }
+            });
+    }
+
+    function formatMarkdownText(text) {
+        return escapeHtml(text)
+            .replace(/\n/g, '<br/>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+</script>
+
+</body>
+</html>
+

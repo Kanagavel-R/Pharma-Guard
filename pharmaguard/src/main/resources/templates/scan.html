@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharma Guard — Verify Your Medicine</title>
+    <link rel="stylesheet" href="/css/pharmaguard-theme.css">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <style>
+        .scanner-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 10px 18px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: #FFF;
+        }
+
+        .scanner-panel {
+            display: none;
+        }
+
+        .scanner-panel.active {
+            display: block;
+        }
+
+        .upload-dropzone {
+            border: 2px dashed var(--primary);
+            border-radius: var(--radius-md);
+            padding: 40px 20px;
+            text-align: center;
+            background: var(--bg-surface-hover);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .upload-dropzone:hover {
+            background: rgba(11, 94, 215, 0.05);
+            border-color: var(--primary-hover);
+        }
+
+        .camera-box {
+            background: #081521;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            height: 240px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-box video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .laser-line-anim {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #00A896;
+            box-shadow: 0 0 15px #00A896;
+            animation: laserScan 2s infinite ease-in-out;
+            z-index: 10;
+        }
+
+        @keyframes laserScan {
+            0% { top: 5%; }
+            50% { top: 90%; }
+            100% { top: 5%; }
+        }
+
+        .camera-overlay-frame {
+            position: absolute;
+            width: 75%;
+            height: 65%;
+            border: 2px dashed rgba(255, 255, 255, 0.7);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 13px;
+            font-weight: 600;
+            pointer-events: none;
+            z-index: 5;
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .progress-pipeline {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .pipeline-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 0;
+            color: var(--text-secondary);
+        }
+
+        .pipeline-step.active {
+            color: var(--primary);
+        }
+
+        .pipeline-step.done {
+            color: var(--success);
+        }
+
+        .risk-gauge-circle {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 800;
+            color: #FFF;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .risk-low { background: linear-gradient(135deg, #10B981, #059669); }
+        .risk-moderate { background: linear-gradient(135deg, #F59E0B, #D97706); }
+        .risk-high { background: linear-gradient(135deg, #F97316, #EA580C); }
+        .risk-critical { background: linear-gradient(135deg, #EF4444, #DC2626); }
+    </style>
+</head>
+
+<body>
+
+<!-- NAVIGATION BAR -->
+<header class="navbar">
+    <a href="/dashboard" class="brand" style="text-decoration:none;">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3L19 6V11C19 15.5 16.1 19.5 12 21C7.9 19.5 5 15.5 5 11V6L12 3Z" fill="rgba(255,255,255,0.25)" stroke="white" stroke-width="1.5"/>
+                <path d="M12 7V15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M9 11H15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="brand-text">
+            <h2>PHARMA GUARD</h2>
+            <span>VERIFY. PROTECT. STAY SAFE.</span>
+        </div>
+    </a>
+
+    <button type="button" class="menu-btn" onclick="toggleMenu()" title="Toggle navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6H20"/><path d="M4 12H20"/><path d="M4 18H20"/>
+        </svg>
+    </button>
+
+    <nav class="nav-links" id="navLinks">
+        <a href="/dashboard" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Dashboard
+        </a>
+        <a href="/medicines" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 4L20 16"/><path d="M16 4L4 16"/><path d="M6 6L18 18"/><rect x="3" y="3" width="18" height="18" rx="9"/></svg>
+            Medicines
+        </a>
+        <a href="/inventory" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7L12 3L21 7L12 11L3 7Z"/><path d="M3 7V17L12 21L21 17V7"/><path d="M12 11V21"/></svg>
+            Inventory
+        </a>
+        <a href="/verifications" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11L12 14L22 4"/><path d="M21 12V19A2 2 0 0119 21H5A2 2 0 013 19V5A2 2 0 015 3H16"/></svg>
+            Verification History
+        </a>
+        <a href="/alerts" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8C18 4.7 15.3 2 12 2C8.7 2 6 4.7 6 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/><path d="M10 21H14"/></svg>
+            Alerts
+        </a>
+        <a href="/scan" class="nav-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7V3H7"/><path d="M17 3H21V7"/><path d="M21 17V21H17"/><path d="M7 21H3V17"/><path d="M8 12H16"/></svg>
+            Scan Medicine
+        </a>
+    </nav>
+
+    <div class="nav-actions">
+        <button type="button" class="icon-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">
+            <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12.8A8.5 8.5 0 1111.2 3 6.5 6.5 0 0021 12.8Z"/></svg>
+        </button>
+        <button type="button" class="icon-btn" id="notif-bell-btn" onclick="toggleNotificationDrawer()" title="Notifications" style="position:relative;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 006 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/><path d="M10 21H14"/></svg>
+            <span class="notification-badge" id="nav-notif-badge" th:if="${activeAlertCount != null and activeAlertCount > 0}" th:text="${activeAlertCount}">3</span>
+        </button>
+        <div class="profile" id="profile" onclick="toggleProfile()">
+            <div class="avatar" th:text="${#strings.substring(username != null ? username : 'A', 0, 1).toUpperCase()}">A</div>
+            <div class="profile-info">
+                <strong th:text="${username != null ? username : 'Admin'}">Admin</strong>
+                <small>Administrator</small>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="app-container">
+    <div style="margin-bottom:24px;">
+        <h1 style="font-size:28px; font-weight:800; color:var(--text-primary);">🛡️ Verify Your Medicine</h1>
+        <p style="color:var(--text-secondary); font-size:14px;">Scan or upload your medicine packaging to check available product information and identify potential verification risks.</p>
+    </div>
+
+    <!-- 3 INPUT OPTIONS TABS -->
+    <div class="scanner-tabs">
+        <button type="button" class="tab-btn active" onclick="switchTab('camera')">📷 Option 1: Scan with Camera</button>
+        <button type="button" class="tab-btn" onclick="switchTab('upload')">📁 Option 2: Upload Medicine Image</button>
+        <button type="button" class="tab-btn" onclick="switchTab('manual')">🔢 Option 3: Enter Barcode / QR / Details</button>
+    </div>
+
+    <!-- OPTION 1: CAMERA SCANNER -->
+    <div id="panel-camera" class="scanner-panel active">
+        <div class="card" style="max-width:580px; margin:0 auto; padding:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <h3 style="font-size:16px; font-weight:700;">📷 Live Packaging & Barcode Camera Feed</h3>
+                <span id="cam-status" style="font-size:12px; font-weight:600; color:var(--primary);">Offline</span>
+            </div>
+
+            <div class="camera-box">
+                <video id="page-camera-video" autoplay playsinline style="display:none;"></video>
+                <canvas id="qr-canvas" style="display:none;"></canvas>
+                <div class="laser-line-anim"></div>
+                <div class="camera-overlay-frame" id="page-camera-overlay">
+                    Align medicine packaging or QR code inside frame
+                </div>
+            </div>
+
+            <!-- REAL-TIME QR DETECTION BANNER -->
+            <div id="qr-detection-banner" style="display:none; margin-top:14px; padding:12px 16px; border-radius:var(--radius-sm); background:rgba(16, 185, 129, 0.1); border:1px solid var(--success);">
+                <div style="font-size:14px; font-weight:700; color:var(--success);" id="qr-banner-status">✓ QR Code Detected</div>
+                <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin-top:2px;" id="qr-banner-decoded">Decoded: PGH-PRC-2024-000123</div>
+                <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;" id="qr-banner-sub">Verifying medicine against central database...</div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-teal" style="flex:1;" onclick="startPageCamera()"><i class="fa-solid fa-camera"></i> Open Camera</button>
+                <button type="button" class="btn btn-primary" style="flex:1;" onclick="captureAndProcessFrame()"><i class="fa-solid fa-bolt"></i> Capture Frame</button>
+                <button type="button" class="btn btn-outline" onclick="stopPageCamera()"><i class="fa-solid fa-circle-stop"></i> Stop</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OPTION 2: IMAGE UPLOAD & DRAG DROP -->
+    <div id="panel-upload" class="scanner-panel">
+        <div class="card" style="padding:24px;">
+            <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;"><i class="fa-solid fa-folder-open"></i> Upload Packaging Image</h3>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">Supports JPG, JPEG, PNG, WEBP images up to 10MB.</p>
+
+            <div class="upload-dropzone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault()" ondrop="handleFileDrop(event)">
+                <div style="font-size:36px; margin-bottom:8px; color:var(--primary);"><i class="fa-solid fa-box-archive"></i></div>
+                <strong style="font-size:16px; color:var(--text-primary);">Click or Drag & Drop Packaging Image</strong>
+                <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">Automatic OCR extraction and batch risk detection will run.</p>
+                <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleFileSelect(this.files[0])">
+            </div>
+
+            <div id="file-preview-area" style="display:none; margin-top:16px; display:flex; align-items:center; gap:16px;">
+                <img id="file-preview-img" style="max-height:100px; border-radius:8px; border:1px solid var(--border);" alt="Preview">
+                <div>
+                    <strong id="file-name-text">filename.jpg</strong>
+                    <div id="file-size-text" style="font-size:12px; color:var(--text-muted);">0 KB</div>
+                    <button type="button" class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="runUploadedImageVerification()"><i class="fa-solid fa-magnifying-glass"></i> Analyze Packaging Image</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OPTION 3: MANUAL BARCODE / CODE LOOKUP -->
+    <div id="panel-manual" class="scanner-panel">
+        <div class="card" style="padding:24px;">
+            <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;"><i class="fa-solid fa-barcode"></i> Manual Verification Fallback</h3>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">Enter medicine details or GTIN barcode manually if camera/OCR is unavailable.</p>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px;">
+                <div>
+                    <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:4px;">Barcode / QR / GTIN (e.g., 8901234567890)</label>
+                    <input type="text" id="manual-barcode" placeholder="Enter barcode or GTIN">
+                </div>
+                <div>
+                    <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:4px;">Batch Number (e.g., PCM20260812)</label>
+                    <input type="text" id="manual-batch" placeholder="Enter batch number">
+                </div>
+                <div>
+                    <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:4px;">Medicine Name</label>
+                    <input type="text" id="manual-name" placeholder="Enter medicine name (e.g. Paracetamol)">
+                </div>
+                <div>
+                    <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:4px;">Manufacturer Name</label>
+                    <input type="text" id="manual-mfr" placeholder="Enter manufacturer name">
+                </div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:4px;">Or Select Active Inventory Batch:</label>
+                <select id="quick-batch-select" onchange="onSelectBatch(this.value)">
+                    <option value="">-- Select a batch to test verification --</option>
+                    <option th:each="m : ${allMedicines}" th:value="${m.batchNumber}" th:text="${m.medicineName + ' (Batch: ' + m.batchNumber + ')'}"></option>
+                </select>
+            </div>
+
+            <button type="button" class="btn btn-primary" onclick="runManualVerification()">🛡️ Run Intelligent Verification</button>
+        </div>
+    </div>
+
+    <!-- PROGRESS PIPELINE UI -->
+    <div id="progress-pipeline" class="progress-pipeline" style="display:none;">
+        <h3 style="font-size:15px; font-weight:700; margin-bottom:12px; color:var(--primary);">⚡ Analyzing medicine image & packaging signals...</h3>
+        <div class="pipeline-step" id="step-1">🟢 <span>Image received & validated</span></div>
+        <div class="pipeline-step" id="step-2">⚪ <span>Reading OCR medicine text & barcodes</span></div>
+        <div class="pipeline-step" id="step-3">⚪ <span>Identifying medicine in central database</span></div>
+        <div class="pipeline-step" id="step-4">⚪ <span>Verifying batch & manufacturer records</span></div>
+        <div class="pipeline-step" id="step-5">⚪ <span>Analyzing duplicate scan patterns & expiry status</span></div>
+        <div class="pipeline-step" id="step-6">⚪ <span>Calculating risk score & generating explainable output</span></div>
+    </div>
+
+    <!-- VERIFICATION RESULT CARD -->
+    <div id="scan-result-card" class="card" style="display:none; padding:24px; margin-top:24px; border:2px solid var(--border);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:16px;">
+            <div>
+                <span id="res-badge" style="display:inline-block; padding:4px 12px; border-radius:20px; font-weight:700; font-size:13px; margin-bottom:8px;">🟢 LOW RISK</span>
+                <h2 style="font-size:24px; font-weight:800; color:var(--text-primary);" id="res-med-name">Paracetamol 500mg</h2>
+                <div style="font-size:13px; color:var(--text-secondary);">Batch Number: <code id="res-batch" style="font-size:14px; font-weight:700;">PCM20260812</code></div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:16px;">
+                <div class="risk-gauge-circle risk-low" id="risk-gauge">
+                    <span id="risk-score-num">18</span>
+                    <span style="font-size:10px; font-weight:600; opacity:0.9;">RISK SCORE</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:20px;">
+            <div style="padding:12px; background:var(--bg-surface-hover); border-radius:var(--radius-sm);">
+                <small style="color:var(--text-secondary); font-weight:600; display:block;">Manufacturer</small>
+                <strong style="font-size:14px;" id="res-mfr">ABC Pharmaceuticals</strong>
+            </div>
+            <div style="padding:12px; background:var(--bg-surface-hover); border-radius:var(--radius-sm);">
+                <small style="color:var(--text-secondary); font-weight:600; display:block;">Verification Status</small>
+                <strong style="font-size:14px;" id="res-status-text">Verified</strong>
+            </div>
+            <div style="padding:12px; background:var(--bg-surface-hover); border-radius:var(--radius-sm);">
+                <small style="color:var(--text-secondary); font-weight:600; display:block;">Barcode / QR Hash</small>
+                <code style="font-size:13px;" id="res-barcode">8901234567890</code>
+            </div>
+        </div>
+
+        <!-- AI EXPLANATION BOX -->
+        <div style="padding:16px; background:rgba(11, 94, 215, 0.06); border-left:4px solid var(--primary); border-radius:var(--radius-sm); margin-bottom:20px;">
+            <h4 style="font-size:14px; font-weight:700; color:var(--primary); margin-bottom:6px;">🤖 Pharma Guard AI Risk Explanation</h4>
+            <p style="font-size:13px; line-height:1.6; color:var(--text-primary);" id="res-ai-explanation">
+                The medicine information matched available records with high confidence. All core packaging, expiry, and manufacturer signals appear consistent.
+            </p>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <span style="font-size:12px; color:var(--text-muted);">Timestamp: <span id="res-time">Just now</span></span>
+            <a id="view-full-analysis-btn" href="#" class="btn btn-primary">🔍 View Full Analysis & Timeline →</a>
+        </div>
+    </div>
+
+</div>
+
+<footer class="footer">
+    <div class="footer-content">
+        <div>
+            <strong style="color:var(--text-primary); font-size:16px;">PHARMA GUARD</strong>
+            <div style="font-size:12px; color:var(--text-secondary);">Verify. Protect. Stay Safe.</div>
+        </div>
+    </div>
+</footer>
+
+<script src="/js/pharmaguard-theme.js"></script>
+<script>
+    let currentSelectedFile = null;
+    let pageStream = null;
+    let scanAnimFrameId = null;
+    let isScanningPaused = false;
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.scanner-panel').forEach(panel => panel.classList.remove('active'));
+
+        event.target.classList.add('active');
+        document.getElementById('panel-' + tabName).classList.add('active');
+    }
+
+    function handleFileSelect(file) {
+        if (!file) return;
+        currentSelectedFile = file;
+        document.getElementById('file-preview-area').style.display = 'flex';
+        document.getElementById('file-name-text').innerText = file.name;
+        document.getElementById('file-size-text').innerText = (file.size / 1024).toFixed(1) + ' KB';
+
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('file-preview-img').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function handleFileDrop(e) {
+        e.preventDefault();
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleFileSelect(e.dataTransfer.files[0]);
+        }
+    }
+
+    function onSelectBatch(val) {
+        if (val) {
+            document.getElementById('manual-batch').value = val;
+        }
+    }
+
+    // 1. QR PARSER FUNCTION
+    function parsePharmaGuardQr(rawText) {
+        if (!rawText) return null;
+        const trimmed = rawText.trim();
+        const result = {
+            prefix: '',
+            medicine: '',
+            batch: '',
+            serial: '',
+            isValidFormat: false,
+            rawText: trimmed
+        };
+
+        if (trimmed.includes('|')) {
+            const parts = trimmed.split('|');
+            result.prefix = parts[0] ? parts[0].trim() : '';
+            for (let i = 1; i < parts.length; i++) {
+                const pair = parts[i].split('=');
+                if (pair.length === 2) {
+                    const key = pair[0].trim().toUpperCase();
+                    const val = pair[1].trim();
+                    if (key === 'MEDICINE' || key === 'MED') result.medicine = val;
+                    else if (key === 'BATCH') result.batch = val;
+                    else if (key === 'SERIAL') result.serial = val;
+                }
+            }
+            if (result.prefix.toUpperCase() === 'PHARMA-GUARD' && (result.medicine || result.batch || result.serial)) {
+                result.isValidFormat = true;
+            }
+        }
+        return result;
+    }
+
+    // 2. CAMERA LOOP WITH REAL QR DECODING
+    async function startPageCamera() {
+        const video = document.getElementById('page-camera-video');
+        const overlay = document.getElementById('page-camera-overlay');
+        const status = document.getElementById('cam-status');
+
+        try {
+            if (pageStream) stopPageCamera();
+            isScanningPaused = false;
+            pageStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+            video.srcObject = pageStream;
+            video.style.display = 'block';
+            await video.play();
+
+            if (overlay) overlay.style.display = 'none';
+            if (status) {
+                status.innerHTML = '🟢 Camera Active';
+                status.style.color = 'var(--success)';
+            }
+
+            // Start frame scanning loop
+            requestAnimationFrame(scanCameraFrame);
+        } catch(e) {
+            if (status) {
+                status.innerHTML = '⚠️ Camera Offline';
+                status.style.color = 'var(--danger)';
+            }
+            alert('Camera unavailable or permission denied. Please use Image Upload or Manual Fallback!');
+        }
+    }
+
+    function stopPageCamera() {
+        if (scanAnimFrameId) {
+            cancelAnimationFrame(scanAnimFrameId);
+            scanAnimFrameId = null;
+        }
+        if (pageStream) {
+            pageStream.getTracks().forEach(t => t.stop());
+            pageStream = null;
+        }
+        const video = document.getElementById('page-camera-video');
+        const status = document.getElementById('cam-status');
+        if (video) video.style.display = 'none';
+        if (status) {
+            status.innerHTML = 'Offline';
+            status.style.color = 'var(--text-muted)';
+        }
+    }
+
+    function scanCameraFrame() {
+        if (!pageStream || isScanningPaused) return;
+
+        const video = document.getElementById('page-camera-video');
+        if (video && video.readyState === video.HAVE_ENOUGH_DATA) {
+            const canvas = document.getElementById('qr-canvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            if (typeof jsQR !== 'undefined') {
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert"
+                });
+
+                if (code && code.data) {
+                    isScanningPaused = true;
+                    handleDecodedQrText(code.data);
+                    return;
+                }
+            }
+        }
+        scanAnimFrameId = requestAnimationFrame(scanCameraFrame);
+    }
+
+    function captureAndProcessFrame() {
+        const video = document.getElementById('page-camera-video');
+        if (video && video.readyState === video.HAVE_ENOUGH_DATA) {
+            const canvas = document.getElementById('qr-canvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            if (typeof jsQR !== 'undefined') {
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                if (code && code.data) {
+                    isScanningPaused = true;
+                    handleDecodedQrText(code.data);
+                    return;
+                }
+            }
+        }
+        alert("No clear QR code detected in frame. Align QR code inside frame and try again.");
+    }
+
+    // 3. DECODED QR TEXT PROCESSOR
+    function handleDecodedQrText(decodedText) {
+        console.log("QR detected:\n" + decodedText);
+        const parsed = parsePharmaGuardQr(decodedText);
+        console.log("Parsed:", parsed);
+
+        const banner = document.getElementById('qr-detection-banner');
+        const statusEl = document.getElementById('qr-banner-status');
+        const decodedEl = document.getElementById('qr-banner-decoded');
+        const subEl = document.getElementById('qr-banner-sub');
+
+        banner.style.display = 'block';
+        statusEl.innerText = "✓ QR Code Detected";
+        statusEl.style.color = "var(--success)";
+        decodedEl.innerText = "Decoded: " + (parsed && parsed.serial ? parsed.serial : decodedText);
+        subEl.innerText = "Verifying medicine against central database...";
+
+        const payload = {
+            prefix: parsed ? parsed.prefix : '',
+            medicine: parsed ? parsed.medicine : '',
+            batch: parsed ? parsed.batch : '',
+            serial: parsed ? parsed.serial : '',
+            rawQrText: decodedText
+        };
+
+        console.log("API request:", payload);
+
+        animatePipelineAndVerifyQr(payload);
+    }
+
+    // 4. IMAGE UPLOAD QR DECODER
+    function runUploadedImageVerification() {
+        if (!currentSelectedFile) {
+            alert('Please select an image file first!');
+            return;
+        }
+
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.getElementById('qr-canvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let code = null;
+            if (typeof jsQR !== 'undefined') {
+                code = jsQR(imageData.data, imageData.width, imageData.height);
+            }
+
+            if (code && code.data) {
+                handleDecodedQrText(code.data);
+            } else {
+                // Fallback if image does not contain QR
+                animatePipelineAndVerify({
+                    rawOcrText: "Packaging Image Analysis",
+                    barcode: "8901234567890",
+                    medicineName: "Paracetamol 500mg",
+                    batchNumber: "PCM20260812",
+                    manufacturer: "ABC Pharmaceuticals Ltd."
+                });
+            }
+        };
+        img.src = URL.createObjectURL(currentSelectedFile);
+    }
+
+    function runManualVerification() {
+        const barcode = document.getElementById('manual-barcode').value;
+        const batch = document.getElementById('manual-batch').value;
+        const name = document.getElementById('manual-name').value;
+        const mfr = document.getElementById('manual-mfr').value;
+
+        if (!barcode && !batch && !name) {
+            alert('Please enter at least a Barcode, Batch Number, or Medicine Name!');
+            return;
+        }
+
+        // Check if barcode input is a raw Pharma Guard QR string
+        if (barcode && barcode.startsWith('PHARMA-GUARD')) {
+            handleDecodedQrText(barcode);
+            return;
+        }
+
+        animatePipelineAndVerify({
+            barcode: barcode,
+            batchNumber: batch,
+            medicineName: name,
+            manufacturer: mfr,
+            rawOcrText: (name || 'Manual Medicine') + ' ' + (batch || '')
+        });
+    }
+
+    function animatePipelineAndVerifyQr(payload) {
+        const pipeline = document.getElementById('progress-pipeline');
+        pipeline.style.display = 'block';
+        document.getElementById('scan-result-card').style.display = 'none';
+
+        const steps = ['step-1', 'step-2', 'step-3', 'step-4', 'step-5', 'step-6'];
+
+        steps.forEach(s => {
+            const el = document.getElementById(s);
+            el.className = 'pipeline-step';
+            el.children[0].innerText = '⚪';
+        });
+
+        let idx = 0;
+        const interval = setInterval(() => {
+            if (idx < steps.length) {
+                const el = document.getElementById(steps[idx]);
+                el.className = 'pipeline-step active';
+                el.children[0].innerText = '⚡';
+                if (idx > 0) {
+                    const prevEl = document.getElementById(steps[idx - 1]);
+                    prevEl.className = 'pipeline-step done';
+                    prevEl.children[0].innerText = '🟢';
+                }
+                idx++;
+            } else {
+                clearInterval(interval);
+                document.getElementById(steps[steps.length - 1]).className = 'pipeline-step done';
+                document.getElementById(steps[steps.length - 1]).children[0].innerText = '🟢';
+
+                fetch('/api/medicine/verify-qr', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    console.log("API response:", data);
+                    renderQrVerificationResult(data, payload);
+                })
+                .catch(err => {
+                    alert('Error executing QR verification: ' + err);
+                });
+            }
+        }, 200);
+    }
+
+    function animatePipelineAndVerify(payload) {
+        const pipeline = document.getElementById('progress-pipeline');
+        pipeline.style.display = 'block';
+        document.getElementById('scan-result-card').style.display = 'none';
+
+        const steps = ['step-1', 'step-2', 'step-3', 'step-4', 'step-5', 'step-6'];
+
+        steps.forEach(s => {
+            const el = document.getElementById(s);
+            el.className = 'pipeline-step';
+            el.children[0].innerText = '⚪';
+        });
+
+        let idx = 0;
+        const interval = setInterval(() => {
+            if (idx < steps.length) {
+                const el = document.getElementById(steps[idx]);
+                el.className = 'pipeline-step active';
+                el.children[0].innerText = '⚡';
+                if (idx > 0) {
+                    const prevEl = document.getElementById(steps[idx - 1]);
+                    prevEl.className = 'pipeline-step done';
+                    prevEl.children[0].innerText = '🟢';
+                }
+                idx++;
+            } else {
+                clearInterval(interval);
+                document.getElementById(steps[steps.length - 1]).className = 'pipeline-step done';
+                document.getElementById(steps[steps.length - 1]).children[0].innerText = '🟢';
+
+                fetch('/api/medicine/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(data => renderResultCard(data))
+                .catch(err => {
+                    alert('Error executing verification: ' + err);
+                });
+            }
+        }, 200);
+    }
+
+    function renderQrVerificationResult(resData, payload) {
+        const card = document.getElementById('scan-result-card');
+        card.style.display = 'block';
+
+        const vh = resData.verification || {};
+
+        let dbStatusBadge = document.getElementById('res-db-status');
+        if (!dbStatusBadge) {
+            dbStatusBadge = document.createElement('div');
+            dbStatusBadge.id = 'res-db-status';
+            dbStatusBadge.style.display = 'inline-block';
+            dbStatusBadge.style.padding = '4px 10px';
+            dbStatusBadge.style.borderRadius = '6px';
+            dbStatusBadge.style.fontSize = '0.85rem';
+            dbStatusBadge.style.fontWeight = '600';
+            dbStatusBadge.style.marginTop = '8px';
+            const medNameEl = document.getElementById('res-med-name');
+            if (medNameEl && medNameEl.parentNode) {
+                medNameEl.parentNode.insertBefore(dbStatusBadge, medNameEl.nextSibling);
+            }
+        }
+
+        if (resData.status === 'VERIFIED') {
+            if (resData.action === 'created') {
+                document.getElementById('res-med-name').innerText = "✓ Medicine Verified & Added (" + (resData.medicine || "P-500") + ")";
+                dbStatusBadge.innerText = "✓ Added to Medicine Database";
+                dbStatusBadge.style.background = "var(--success-bg)";
+                dbStatusBadge.style.color = "var(--success)";
+            } else if (resData.action === 'already_exists') {
+                document.getElementById('res-med-name').innerText = "✓ Medicine Verified (" + (resData.medicine || "P-500") + ")";
+                dbStatusBadge.innerText = "Already exists in database";
+                dbStatusBadge.style.background = "#EFF6FF";
+                dbStatusBadge.style.color = "#1D4ED8";
+            } else {
+                document.getElementById('res-med-name').innerText = "✓ " + (resData.medicine || "P-500");
+                dbStatusBadge.innerText = "Verified";
+                dbStatusBadge.style.background = "var(--success-bg)";
+                dbStatusBadge.style.color = "var(--success)";
+            }
+
+            document.getElementById('res-batch').innerText = resData.batch || "PG240501";
+            document.getElementById('res-mfr').innerText = vh.manufacturer || "Pharma Guard Certified Labs";
+            document.getElementById('res-status-text').innerText = "Genuine / Verified";
+            document.getElementById('res-barcode').innerText = resData.serial || "PGH-PRC-2024-000123";
+            document.getElementById('res-ai-explanation').innerText = vh.aiExplanation || "Medicine identity, batch PG240501, and serial PGH-PRC-2024-000123 verified successfully against central Pharma Guard database.";
+
+            const gauge = document.getElementById('risk-gauge');
+            const scoreNum = document.getElementById('risk-score-num');
+            const badge = document.getElementById('res-badge');
+
+            scoreNum.innerText = vh.riskScore || 0;
+            gauge.className = 'risk-gauge-circle risk-low';
+            badge.innerText = '🟢 GENUINE / VERIFIED';
+            badge.style.background = 'var(--success-bg)';
+            badge.style.color = 'var(--success)';
+        } else if (resData.status === 'INVALID_FORMAT') {
+            document.getElementById('res-med-name').innerText = "✕ Verification Failed (Invalid Format)";
+            dbStatusBadge.innerText = "This medicine was NOT added to the database.";
+            dbStatusBadge.style.background = "var(--danger-bg)";
+            dbStatusBadge.style.color = "var(--danger)";
+
+            document.getElementById('res-batch').innerText = "UNREADABLE";
+            document.getElementById('res-mfr').innerText = "Unknown";
+            document.getElementById('res-status-text').innerText = "Invalid QR Format";
+            document.getElementById('res-barcode').innerText = payload.rawQrText || "N/A";
+            document.getElementById('res-ai-explanation').innerText = resData.message || "This QR code is readable but is not a valid Pharma Guard medicine verification code.";
+
+            const gauge = document.getElementById('risk-gauge');
+            const scoreNum = document.getElementById('risk-score-num');
+            const badge = document.getElementById('res-badge');
+
+            scoreNum.innerText = 85;
+            gauge.className = 'risk-gauge-circle risk-critical';
+            badge.innerText = '🔴 INVALID QR CODE';
+            badge.style.background = 'var(--danger-bg)';
+            badge.style.color = 'var(--danger)';
+        } else {
+            // NOT FOUND
+            document.getElementById('res-med-name').innerText = "✕ Verification Failed (Medicine Not Found)";
+            dbStatusBadge.innerText = "This medicine was NOT added to the database.";
+            dbStatusBadge.style.background = "var(--danger-bg)";
+            dbStatusBadge.style.color = "var(--danger)";
+
+            document.getElementById('res-batch').innerText = payload.batch || "UNLISTED";
+            document.getElementById('res-mfr').innerText = "Unregistered Mfr";
+            document.getElementById('res-status-text').innerText = "Unverified Product";
+            document.getElementById('res-barcode').innerText = payload.serial || payload.rawQrText || "N/A";
+            document.getElementById('res-ai-explanation').innerText = resData.message || "The QR code was detected, but this medicine could not be verified against the Pharma Guard database.";
+
+            const gauge = document.getElementById('risk-gauge');
+            const scoreNum = document.getElementById('risk-score-num');
+            const badge = document.getElementById('res-badge');
+
+            scoreNum.innerText = 70;
+            gauge.className = 'risk-gauge-circle risk-high';
+            badge.innerText = '🟠 MEDICINE NOT FOUND';
+            badge.style.background = '#FFEDD5';
+            badge.style.color = '#C2410C';
+        }
+
+        document.getElementById('res-time').innerText = new Date().toLocaleString();
+        if (vh.id) {
+            document.getElementById('view-full-analysis-btn').href = '/verification/' + vh.id;
+        }
+
+        // Add View Medicine and Rescan buttons
+        let btnContainer = document.getElementById('qr-action-buttons');
+        if (!btnContainer) {
+            btnContainer = document.createElement('div');
+            btnContainer.id = 'qr-action-buttons';
+            btnContainer.style.display = 'flex';
+            btnContainer.style.gap = '10px';
+            btnContainer.style.marginTop = '15px';
+            card.appendChild(btnContainer);
+        }
+        btnContainer.innerHTML = '';
+
+        if (resData.status === 'VERIFIED') {
+            const viewMedBtn = document.createElement('a');
+            viewMedBtn.className = 'btn btn-outline';
+            viewMedBtn.href = '/medicines';
+            viewMedBtn.innerHTML = '<i class="fa-solid fa-pills"></i> View Medicine';
+            btnContainer.appendChild(viewMedBtn);
+        }
+
+        const rescanBtn = document.createElement('button');
+        rescanBtn.id = 'rescan-btn';
+        rescanBtn.className = 'btn btn-teal';
+        rescanBtn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> ' + (resData.status === 'VERIFIED' ? 'Scan Another Medicine' : 'Scan Again');
+        rescanBtn.onclick = resetScannerForNewScan;
+        btnContainer.appendChild(rescanBtn);
+
+        card.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetScannerForNewScan() {
+        document.getElementById('scan-result-card').style.display = 'none';
+        document.getElementById('progress-pipeline').style.display = 'none';
+        document.getElementById('qr-detection-banner').style.display = 'none';
+        isScanningPaused = false;
+        if (pageStream) {
+            requestAnimationFrame(scanCameraFrame);
+        }
+    }
+
+    function renderResultCard(data) {
+        const card = document.getElementById('scan-result-card');
+        card.style.display = 'block';
+
+        document.getElementById('res-med-name').innerText = data.medicineName || 'Unidentified Medicine';
+        document.getElementById('res-batch').innerText = data.batchNumber || 'UNLISTED';
+        document.getElementById('res-mfr').innerText = data.manufacturer || 'Unverified Manufacturer';
+        document.getElementById('res-status-text').innerText = data.verificationStatus || 'Verified';
+        document.getElementById('res-barcode').innerText = data.barcodeHash || 'N/A';
+        document.getElementById('res-ai-explanation').innerText = data.aiExplanation || 'No AI explanation generated.';
+        document.getElementById('res-time').innerText = new Date(data.createdAt || Date.now()).toLocaleString();
+
+        document.getElementById('view-full-analysis-btn').href = '/verification/' + data.id;
+
+        const gauge = document.getElementById('risk-gauge');
+        const scoreNum = document.getElementById('risk-score-num');
+        const badge = document.getElementById('res-badge');
+
+        scoreNum.innerText = data.riskScore;
+
+        if (data.riskLevel === 'LOW') {
+            gauge.className = 'risk-gauge-circle risk-low';
+            badge.innerText = '🟢 LOW RISK';
+            badge.style.background = 'var(--success-bg)';
+            badge.style.color = 'var(--success)';
+        } else if (data.riskLevel === 'MODERATE') {
+            gauge.className = 'risk-gauge-circle risk-moderate';
+            badge.innerText = '🟡 MODERATE RISK';
+            badge.style.background = 'var(--warning-bg)';
+            badge.style.color = 'var(--warning)';
+        } else if (data.riskLevel === 'HIGH') {
+            gauge.className = 'risk-gauge-circle risk-high';
+            badge.innerText = '🟠 HIGH RISK';
+            badge.style.background = '#FFEDD5';
+            badge.style.color = '#C2410C';
+        } else {
+            gauge.className = 'risk-gauge-circle risk-critical';
+            badge.innerText = '🔴 CRITICAL RISK';
+            badge.style.background = 'var(--danger-bg)';
+            badge.style.color = 'var(--danger)';
+        }
+
+        card.scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
+

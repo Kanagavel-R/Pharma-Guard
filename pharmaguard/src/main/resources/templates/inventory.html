@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharma Guard — Inventory Management</title>
+    <link rel="stylesheet" href="/css/pharmaguard-theme.css">
+    <style>
+        .inv-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        @media (max-width: 1200px) {
+            .inv-summary-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 650px) {
+            .inv-summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .inv-stat-card {
+            background: white;
+            border-radius: 14px;
+            padding: 18px 16px;
+            box-shadow: 0 4px 15px rgba(0, 50, 100, 0.05);
+            border: 1px solid #eef3f8;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .inv-stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 50, 100, 0.1);
+        }
+
+        .inv-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .inv-icon-blue { background: #eef6ff; color: #0879d9; }
+        .inv-icon-cyan { background: #e6f9f8; color: #09a9a3; }
+        .inv-icon-orange { background: #fff5e6; color: #f39c12; }
+        .inv-icon-purple { background: #f4ecfb; color: #8e44ad; }
+        .inv-icon-red { background: #fde8e8; color: #e74c3c; }
+        .inv-icon-dark { background: #eaeded; color: #34495e; }
+
+        .inv-stat-info h3 {
+            font-size: 11px;
+            font-weight: 700;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 3px 0;
+        }
+
+        .inv-stat-info p {
+            font-size: 22px;
+            font-weight: 800;
+            color: #2c3e50;
+            margin: 0;
+            line-height: 1.1;
+        }
+
+        .filter-card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 50, 100, 0.05);
+            border: 1px solid #eef3f8;
+            margin-bottom: 24px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
+            gap: 12px;
+            align-items: center;
+        }
+
+        @media (max-width: 1100px) {
+            .filter-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 650px) {
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .status-available { background: #e6f9f5; color: #00a885; }
+        .status-lowstock { background: #fff5e6; color: #e67e22; }
+        .status-expired { background: #fde8e8; color: #e74c3c; }
+        .status-expiring { background: #f4ecfb; color: #8e44ad; }
+        .status-outofstock { background: #eaeded; color: #7f8c8d; }
+
+        .fefo-pill {
+            display: inline-block;
+            background: #fff8e1;
+            color: #b78103;
+            border: 1px solid #ffe082;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .dropdown-action-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .action-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            min-width: 160px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-radius: 10px;
+            z-index: 100;
+            padding: 6px;
+        }
+
+        .dropdown-action-menu:hover .action-dropdown-content {
+            display: block;
+        }
+
+        .action-dropdown-content a, .action-dropdown-content button {
+            color: #2c3e50;
+            padding: 8px 12px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .action-dropdown-content a:hover, .action-dropdown-content button:hover {
+            background: #f1f7fd;
+            color: #0879d9;
+        }
+
+        .action-dropdown-content .delete-btn:hover {
+            background: #fde8e8;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ==========================================================================
+     MODERN SAAS NAVBAR
+     ========================================================================== -->
+<header class="navbar">
+    <a href="/dashboard" class="brand" style="text-decoration:none;">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3L19 6V11C19 15.5 16.1 19.5 12 21C7.9 19.5 5 15.5 5 11V6L12 3Z" fill="rgba(255,255,255,0.25)" stroke="white" stroke-width="1.5"/>
+                <path d="M12 7V15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M9 11H15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="brand-text">
+            <h2>PHARMA GUARD</h2>
+            <span>VERIFY. PROTECT. STAY SAFE.</span>
+        </div>
+    </a>
+
+    <button type="button" class="menu-btn" onclick="toggleMenu()" title="Toggle navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6H20"/><path d="M4 12H20"/><path d="M4 18H20"/>
+        </svg>
+    </button>
+
+    <nav class="nav-links" id="navLinks">
+        <a href="/dashboard" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            Dashboard
+        </a>
+        <a href="/medicines" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M8 4L20 16"/><path d="M16 4L4 16"/><path d="M6 6L18 18"/><rect x="3" y="3" width="18" height="18" rx="9"/>
+            </svg>
+            Medicines
+        </a>
+        <a href="/inventory" class="nav-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 7L12 3L21 7L12 11L3 7Z"/><path d="M3 7V17L12 21L21 17V7"/><path d="M12 11V21"/>
+            </svg>
+            Inventory
+        </a>
+        <a href="/transactions" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M8 7H21M8 12H21M8 17H21M3 7H4M3 12H4M3 17H4"/>
+            </svg>
+            Transactions
+        </a>
+        <a href="/alerts" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M18 8C18 4.7 15.3 2 12 2C8.7 2 6 4.7 6 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/><path d="M10 21H14"/>
+            </svg>
+            Alerts
+        </a>
+        <a href="/suppliers" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 21V8L12 3L21 8V21"/><path d="M7 21V12H17V21"/><path d="M9 16H15"/>
+            </svg>
+            Suppliers
+        </a>
+        <a href="/scan" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 7V3H7"/><path d="M17 3H21V7"/><path d="M21 17V21H17"/><path d="M7 21H3V17"/><path d="M8 12H16"/>
+            </svg>
+            Scan Medicine
+        </a>
+    </nav>
+
+    <div class="nav-actions">
+        <button type="button" class="icon-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">
+            <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 12.8A8.5 8.5 0 1111.2 3 6.5 6.5 0 0021 12.8Z"/>
+            </svg>
+        </button>
+
+        <a href="/alerts" class="icon-btn" title="Notifications" style="text-decoration:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M18 8A6 6 0 006 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/><path d="M10 21H14"/>
+            </svg>
+            <span class="notification-badge" th:if="${activeAlertCount != null and activeAlertCount > 0}" th:text="${activeAlertCount}">3</span>
+        </a>
+
+        <div class="profile" id="profile" onclick="toggleProfile()">
+            <div class="avatar" th:text="${#strings.substring(username != null ? username : 'A', 0, 1).toUpperCase()}">A</div>
+            <div class="profile-info">
+                <strong th:text="${username != null ? username : 'Admin'}">Admin</strong>
+                <small>Administrator</small>
+            </div>
+            <svg class="profile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 9L12 15L18 9"/></svg>
+
+            <div class="profile-menu">
+                <a href="/profile">Profile</a>
+                <a href="/settings">Settings</a>
+                <form th:action="@{/logout}" method="post" style="margin:0;">
+                    <button type="submit" class="logout">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- MAIN APP CONTAINER -->
+<div class="app-container">
+
+    <!-- ALERTS / FLASH MESSAGES -->
+    <div th:if="${successMsg}" style="background:#e6f9f5; color:#00a885; border:1px solid #a3e9d9; padding:12px 18px; border-radius:10px; margin-bottom:20px; font-weight:600; font-size:14px;">
+        <i class="fa-solid fa-check"></i> <span th:text="${successMsg}">Stock updated successfully!</span>
+    </div>
+    <div th:if="${errorMsg}" style="background:#fde8e8; color:#e74c3c; border:1px solid #f5b7b1; padding:12px 18px; border-radius:10px; margin-bottom:20px; font-weight:600; font-size:14px;">
+        <i class="fa-solid fa-triangle-exclamation"></i> <span th:text="${errorMsg}">Error occurred</span>
+    </div>
+
+    <!-- 1. HEADER SECTION -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px;">
+        <div>
+            <h1 style="font-size:26px; font-weight:800; color:var(--text-primary); margin:0 0 4px 0;"><i class="fa-solid fa-boxes-stacked"></i> Inventory Management</h1>
+            <p style="color:var(--text-secondary); font-size:13px; margin:0;">Manage medicine stock, batches, expiry dates and inventory movements.</p>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="openAddStockModal()" style="padding:10px 18px; font-weight:700; display:flex; align-items:center; gap:8px;">
+            <i class="fa-solid fa-plus"></i> Add Stock
+        </button>
+    </div>
+
+    <!-- 2. SUMMARY CARDS -->
+    <div class="inv-summary-grid">
+        <div class="inv-stat-card">
+            <div class="inv-icon-box inv-icon-blue"><i class="fa-solid fa-pills"></i></div>
+            <div class="inv-stat-info">
+                <h3>TOTAL MEDICINES</h3>
+                <p th:text="${#numbers.formatInteger(totalMedicines, 0, 'COMMA')}">1,250</p>
+            </div>
+        </div>
+        <div class="inv-stat-card">
+            <div class="inv-icon-box inv-icon-cyan"><i class="fa-solid fa-box-archive"></i></div>
+            <div class="inv-stat-info">
+                <h3>STOCK UNITS</h3>
+                <p th:text="${#numbers.formatInteger(totalStockUnits, 0, 'COMMA')}">8,450</p>
+            </div>
+        </div>
+        <div class="inv-stat-card">
+            <div class="inv-icon-box inv-icon-orange"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="inv-stat-info">
+                <h3>LOW STOCK</h3>
+                <p th:text="${lowStockCount}">18</p>
+            </div>
+        </div>
+        <div class="inv-stat-card">
+            <div class="inv-icon-box inv-icon-purple"><i class="fa-solid fa-clock"></i></div>
+            <div class="inv-stat-info">
+                <h3>EXPIRING SOON</h3>
+                <p th:text="${expiringSoonCount}">12</p>
+            </div>
+        </div>
+        <div class="inv-stat-card">
+            <div class="inv-icon-box inv-icon-red"><i class="fa-solid fa-circle-exclamation"></i></div>
+            <div class="inv-stat-info">
+                <h3>EXPIRED</h3>
+                <p th:text="${expiredCount}">5</p>
+            </div>
+        </div>
+        <div class="inv-stat-card">
+            <div class="inv-icon-box inv-icon-dark"><i class="fa-solid fa-ban"></i></div>
+            <div class="inv-stat-info">
+                <h3>OUT OF STOCK</h3>
+                <p th:text="${outOfStockCount}">3</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. SEARCH AND FILTER -->
+    <div class="filter-card">
+        <form action="/inventory" method="get" class="filter-grid">
+            <input type="text" name="keyword" placeholder="Search medicine, batch number or supplier..." th:value="${keyword}" style="padding:9px 14px; border:1px solid #dcdfe6; border-radius:8px; font-size:13px; outline:none; width:100%;">
+
+            <select name="category" style="padding:9px 12px; border:1px solid #dcdfe6; border-radius:8px; font-size:13px; outline:none;">
+                <option value="All">All Categories</option>
+                <option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat}" th:selected="${cat == category}">Tablets</option>
+            </select>
+
+            <select name="stockStatus" style="padding:9px 12px; border:1px solid #dcdfe6; border-radius:8px; font-size:13px; outline:none;">
+                <option value="All" th:selected="${stockStatus == 'All' || stockStatus == null}">All Stock Status</option>
+                <option value="Available" th:selected="${stockStatus == 'Available'}">Available</option>
+                <option value="Low Stock" th:selected="${stockStatus == 'Low Stock'}">Low Stock</option>
+                <option value="Out of Stock" th:selected="${stockStatus == 'Out of Stock'}">Out of Stock</option>
+            </select>
+
+            <select name="expiryStatus" style="padding:9px 12px; border:1px solid #dcdfe6; border-radius:8px; font-size:13px; outline:none;">
+                <option value="All" th:selected="${expiryStatus == 'All' || expiryStatus == null}">All Expiry Status</option>
+                <option value="Safe" th:selected="${expiryStatus == 'Safe'}">Safe</option>
+                <option value="Expiring Soon" th:selected="${expiryStatus == 'Expiring Soon'}">Expiring Soon</option>
+                <option value="Expired" th:selected="${expiryStatus == 'Expired'}">Expired</option>
+            </select>
+
+            <select name="supplier" style="padding:9px 12px; border:1px solid #dcdfe6; border-radius:8px; font-size:13px; outline:none;">
+                <option value="All">All Suppliers</option>
+                <option th:each="sup : ${suppliers}" th:value="${sup.supplierName}" th:text="${sup.supplierName}" th:selected="${sup.supplierName == supplier}">ABC Pharma</option>
+            </select>
+
+            <select name="sortBy" style="padding:9px 12px; border:1px solid #dcdfe6; border-radius:8px; font-size:13px; outline:none;">
+                <option value="Medicine Name" th:selected="${sortBy == 'Medicine Name' || sortBy == null}">Sort: Medicine Name</option>
+                <option value="Quantity" th:selected="${sortBy == 'Quantity'}">Sort: Quantity</option>
+                <option value="Expiry Date" th:selected="${sortBy == 'Expiry Date'}">Sort: Expiry Date</option>
+                <option value="Recently Added" th:selected="${sortBy == 'Recently Added'}">Sort: Recently Added</option>
+            </select>
+
+            <div style="display:flex; gap:8px;">
+                <button type="submit" class="btn btn-primary" style="padding:9px 14px; font-size:13px;">🔍 Filter</button>
+                <a href="/inventory" class="btn btn-secondary" style="padding:9px 12px; font-size:13px; text-decoration:none;">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- 4. INVENTORY TABLE -->
+    <div class="card" style="padding:0; overflow:hidden;">
+        <div class="table-responsive" th:if="${medicines != null and !medicines.isEmpty()}">
+            <table style="width:100%; border-collapse:collapse; text-align:left;">
+                <thead style="background:#f8fafc; border-bottom:1px solid #eef3f8;">
+                    <tr>
+                        <th style="padding:14px 18px; font-size:12px; font-weight:700; color:#475569;">MEDICINE</th>
+                        <th style="padding:14px 18px; font-size:12px; font-weight:700; color:#475569;">BATCH NUMBER</th>
+                        <th style="padding:14px 18px; font-size:12px; font-weight:700; color:#475569;">CATEGORY</th>
+                        <th style="padding:14px 18px; font-size:12px; font-weight:700; color:#475569;">QUANTITY</th>
+                        <th style="padding:14px 18px; font-size:12px; font-weight:700; color:#475569;">MIN STOCK</th>
+                        <th style="padding:14px 18px; font-size:12px; font-weight:700; color:#475569;">EXPIRY DATE</th>
+                        <th style="padding:14px 18px; font-size:12px; font-weight:700; color:#475569;">SUPPLIER</th>
+                        <th style="padding:14px 18px; font-size:12px; font-weight:700; color:#475569;">STORAGE</th>
+                        <th style="padding:14px 18px; font-size:12px; font-weight:700; color:#475569;">STATUS</th>
+                        <th style="padding:14px 18px; font-size:12px; font-weight:700; color:#475569; text-align:right;">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody style="font-size:13px; color:#334155;">
+                    <tr th:each="m : ${medicines}" style="border-bottom:1px solid #f1f5f9;">
+                        <td style="padding:14px 18px;">
+                            <strong th:text="${m.medicineName}" style="color:#0f172a; font-size:14px;">Paracetamol</strong>
+                            <div th:if="${fefoMap.containsKey(m.id)}" class="fefo-pill" th:text="${fefoMap.get(m.id)}">⚡ FEFO Recommendation</div>
+                        </td>
+                        <td style="padding:14px 18px; font-family:monospace; font-weight:600; color:#475569;" th:text="${m.batchNumber}">PCM1023</td>
+                        <td style="padding:14px 18px;" th:text="${m.category}">Tablet</td>
+                        <td style="padding:14px 18px;">
+                            <strong th:text="${m.quantity}" style="font-size:14px;">120</strong>
+                        </td>
+                        <td style="padding:14px 18px; color:#64748b;" th:text="${m.reorderLevel}">50</td>
+                        <td style="padding:14px 18px;">
+                            <span th:text="${m.expiryDate}">Dec 2026</span>
+                            <small th:if="${daysToExpiryMap.containsKey(m.id)}" style="display:block; font-size:10px;"
+                                   th:styleappend="${daysToExpiryMap.get(m.id) < 0 ? 'color:#e74c3c; font-weight:bold;' : (daysToExpiryMap.get(m.id) <= 30 ? 'color:#8e44ad; font-weight:bold;' : 'color:#94a3b8;')}"
+                                   th:text="${daysToExpiryMap.get(m.id) < 0 ? 'Expired (' + daysToExpiryMap.get(m.id) + 'd)' : daysToExpiryMap.get(m.id) + ' days left'}">30 days left</small>
+                        </td>
+                        <td style="padding:14px 18px; color:#64748b;" th:text="${m.supplierName != null ? m.supplierName : 'N/A'}">ABC Pharma</td>
+                        <td style="padding:14px 18px; color:#64748b;" th:text="${m.storageLocation != null ? m.storageLocation : 'Main Rack'}">Rack A1</td>
+                        <td style="padding:14px 18px;">
+                            <span th:if="${m.quantity == 0}" class="status-badge status-outofstock">⚫ Out of Stock</span>
+                            <span th:if="${m.quantity > 0 and m.expiryDate != null and m.expiryDate.isBefore(T(java.time.LocalDate).now())}" class="status-badge status-expired">🔴 Expired</span>
+                            <span th:if="${m.quantity > 0 and m.expiryDate != null and !m.expiryDate.isBefore(T(java.time.LocalDate).now()) and daysToExpiryMap.containsKey(m.id) and daysToExpiryMap.get(m.id) <= 30}" class="status-badge status-expiring">🟣 Expiring Soon</span>
+                            <span th:if="${m.quantity > 0 and m.quantity <= m.reorderLevel and (daysToExpiryMap.get(m.id) == null or daysToExpiryMap.get(m.id) > 30)}" class="status-badge status-lowstock">🟠 Low Stock</span>
+                            <span th:if="${m.quantity > m.reorderLevel and (daysToExpiryMap.get(m.id) == null or daysToExpiryMap.get(m.id) > 30)}" class="status-badge status-available">🟢 Available</span>
+                        </td>
+                        <td style="padding:14px 18px; text-align:right;">
+                            <div class="dropdown-action-menu">
+                                <button type="button" class="btn btn-secondary" style="padding:5px 10px; font-size:12px;">Actions ▾</button>
+                                <div class="action-dropdown-content">
+                                    <a href="javascript:void(0)" th:onclick="'openViewDetailsModal(' + ${m.id} + ')'">👁️ View Details</a>
+                                    <a href="javascript:void(0)" th:onclick="'openStockInModal(' + ${m.id} + ', \'' + ${m.medicineName} + '\', ' + ${m.quantity} + ')'">➕ Add Stock</a>
+                                    <a href="javascript:void(0)" th:onclick="'openStockOutModal(' + ${m.id} + ', \'' + ${m.medicineName} + '\', ' + ${m.quantity} + ')'">➖ Remove Stock</a>
+                                    <a th:href="@{'/medicines/edit/' + ${m.id}}">✏️ Edit</a>
+                                    <a href="javascript:void(0)" th:onclick="'openStockHistoryModal(' + ${m.id} + ', \'' + ${m.medicineName} + '\')'">📜 Stock History</a>
+                                    <a th:href="@{'/inventory/delete/' + ${m.id}}" class="delete-btn" onclick="return confirm('Are you sure you want to delete this inventory record?');">🗑️ Delete</a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 18. EMPTY STATES -->
+        <div th:if="${medicines == null or medicines.isEmpty()}" style="text-align:center; padding:60px 20px;">
+            <div style="font-size:48px; margin-bottom:12px;">📦</div>
+            <h3 style="font-size:18px; font-weight:700; color:#334155; margin-bottom:6px;">No inventory found</h3>
+            <p style="color:#64748b; font-size:14px; margin-bottom:20px;">Add your first medicine stock batch or try changing your search/filters.</p>
+            <button type="button" class="btn btn-primary" onclick="openAddStockModal()">+ Add Stock</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- ==========================================================================
+     MODALS SECTION
+     ========================================================================== -->
+
+<!-- 1. ADD STOCK MODAL -->
+<div id="addStockModal" class="modal-backdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; justify-content:center; align-items:center;">
+    <div style="background:white; border-radius:16px; padding:28px; width:90%; max-width:650px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 50px rgba(0,0,0,0.2);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #eef2f6; padding-bottom:14px;">
+            <h2 style="font-size:20px; font-weight:800; color:#0f172a; margin:0;">+ Add New Medicine Stock Batch</h2>
+            <button type="button" onclick="closeModal('addStockModal')" style="border:none; background:none; font-size:22px; cursor:pointer; color:#64748b;">✕</button>
+        </div>
+
+        <form action="/inventory/save" method="post" th:object="${newMedicine}">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">Medicine Name *</label>
+                    <input type="text" th:field="*{medicineName}" required placeholder="e.g. Paracetamol" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">Batch Number *</label>
+                    <input type="text" th:field="*{batchNumber}" required placeholder="e.g. PCM1023" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">Category *</label>
+                    <input type="text" th:field="*{category}" required placeholder="e.g. Tablet" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">Initial Quantity *</label>
+                    <input type="number" th:field="*{quantity}" min="0" required placeholder="e.g. 100" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">Selling Price ($) *</label>
+                    <input type="number" step="0.01" th:field="*{price}" min="0.01" required placeholder="e.g. 15.50" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">Expiry Date *</label>
+                    <input type="date" th:field="*{expiryDate}" required style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">Minimum Stock Level</label>
+                    <input type="number" th:field="*{reorderLevel}" min="0" value="20" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">Storage Location</label>
+                    <input type="text" th:field="*{storageLocation}" placeholder="e.g. Rack A1" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                </div>
+                <div style="grid-column: span 2;">
+                    <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">Supplier Name</label>
+                    <input type="text" th:field="*{supplierName}" placeholder="e.g. ABC Pharma" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:24px;">
+                <button type="button" onclick="closeModal('addStockModal')" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">+ Save Stock Batch</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 2. STOCK IN MODAL -->
+<div id="stockInModal" class="modal-backdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; justify-content:center; align-items:center;">
+    <div style="background:white; border-radius:16px; padding:24px; width:90%; max-width:450px; box-shadow:0 20px 50px rgba(0,0,0,0.2);">
+        <h3 style="font-size:18px; font-weight:800; color:#0f172a; margin:0 0 14px 0;">➕ Add Stock (Stock In)</h3>
+        <p id="stockInMedicineLabel" style="font-size:13px; color:#475569; margin-bottom:16px;"></p>
+
+        <form action="/inventory/stock-in" method="post">
+            <input type="hidden" id="stockInMedicineId" name="medicineId">
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">Quantity to Add *</label>
+                <input type="number" name="quantity" min="1" required placeholder="e.g. 50" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+            </div>
+            <div style="margin-bottom:18px;">
+                <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">Reason / Notes</label>
+                <input type="text" name="notes" placeholder="e.g. Supplier delivery" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" onclick="closeModal('stockInModal')" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Confirm Stock In</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 3. STOCK OUT MODAL -->
+<div id="stockOutModal" class="modal-backdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; justify-content:center; align-items:center;">
+    <div style="background:white; border-radius:16px; padding:24px; width:90%; max-width:450px; box-shadow:0 20px 50px rgba(0,0,0,0.2);">
+        <h3 style="font-size:18px; font-weight:800; color:#e74c3c; margin:0 0 14px 0;">➖ Remove Stock (Stock Out)</h3>
+        <p id="stockOutMedicineLabel" style="font-size:13px; color:#475569; margin-bottom:16px;"></p>
+
+        <form action="/inventory/stock-out" method="post">
+            <input type="hidden" id="stockOutMedicineId" name="medicineId">
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">Quantity to Remove *</label>
+                <input type="number" id="stockOutQuantityInput" name="quantity" min="1" required placeholder="e.g. 10" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+            </div>
+            <div style="margin-bottom:18px;">
+                <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">Reason / Notes</label>
+                <input type="text" name="notes" placeholder="e.g. Dispense / Expiry removal" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" onclick="closeModal('stockOutModal')" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="background:#e74c3c; border-color:#e74c3c;">Confirm Stock Out</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 4. VIEW DETAILS MODAL -->
+<div id="viewDetailsModal" class="modal-backdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; justify-content:center; align-items:center;">
+    <div style="background:white; border-radius:16px; padding:28px; width:90%; max-width:600px; max-height:85vh; overflow-y:auto; box-shadow:0 20px 50px rgba(0,0,0,0.2);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid #eef2f6; padding-bottom:12px;">
+            <h2 id="detailTitle" style="font-size:20px; font-weight:800; color:#0f172a; margin:0;">Medicine Details</h2>
+            <button type="button" onclick="closeModal('viewDetailsModal')" style="border:none; background:none; font-size:22px; cursor:pointer; color:#64748b;">✕</button>
+        </div>
+
+        <div id="detailContent" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:13px;">
+            <!-- Dynamic via JS -->
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; margin-top:24px;">
+            <button type="button" onclick="closeModal('viewDetailsModal')" class="btn btn-secondary">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- 5. STOCK HISTORY MODAL -->
+<div id="stockHistoryModal" class="modal-backdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; justify-content:center; align-items:center;">
+    <div style="background:white; border-radius:16px; padding:28px; width:90%; max-width:750px; max-height:85vh; overflow-y:auto; box-shadow:0 20px 50px rgba(0,0,0,0.2);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid #eef2f6; padding-bottom:12px;">
+            <h2 id="historyTitle" style="font-size:20px; font-weight:800; color:#0f172a; margin:0;">📜 Stock Movement Audit History</h2>
+            <button type="button" onclick="closeModal('stockHistoryModal')" style="border:none; background:none; font-size:22px; cursor:pointer; color:#64748b;">✕</button>
+        </div>
+
+        <div class="table-responsive">
+            <table style="width:100%; border-collapse:collapse; text-align:left; font-size:12px;">
+                <thead style="background:#f8fafc;">
+                    <tr>
+                        <th style="padding:10px;">DATE</th>
+                        <th style="padding:10px;">ACTION</th>
+                        <th style="padding:10px;">QUANTITY</th>
+                        <th style="padding:10px;">PREV STOCK</th>
+                        <th style="padding:10px;">NEW STOCK</th>
+                        <th style="padding:10px;">USER</th>
+                        <th style="padding:10px;">REASON</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <!-- Dynamic via JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; margin-top:20px;">
+            <button type="button" onclick="closeModal('stockHistoryModal')" class="btn btn-secondary">Close</button>
+        </div>
+    </div>
+</div>
+
+<script src="/js/pharmaguard-theme.js"></script>
+<script>
+    function openAddStockModal() {
+        document.getElementById('addStockModal').style.display = 'flex';
+    }
+
+    function openStockInModal(id, name, currentQty) {
+        document.getElementById('stockInMedicineId').value = id;
+        document.getElementById('stockInMedicineLabel').innerText = name + ' (Current Stock: ' + currentQty + ')';
+        document.getElementById('stockInModal').style.display = 'flex';
+    }
+
+    function openStockOutModal(id, name, currentQty) {
+        document.getElementById('stockOutMedicineId').value = id;
+        document.getElementById('stockOutMedicineLabel').innerText = name + ' (Current Stock: ' + currentQty + ')';
+        document.getElementById('stockOutQuantityInput').max = currentQty;
+        document.getElementById('stockOutModal').style.display = 'flex';
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    function openViewDetailsModal(id) {
+        fetch('/inventory/details/' + id)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('detailTitle').innerText = data.medicineName + ' Details';
+                document.getElementById('detailContent').innerHTML = `
+                    <div><strong>Category:</strong> ${data.category}</div>
+                    <div><strong>Batch Number:</strong> ${data.batchNumber}</div>
+                    <div><strong>Current Quantity:</strong> ${data.quantity}</div>
+                    <div><strong>Minimum Stock Level:</strong> ${data.reorderLevel}</div>
+                    <div><strong>Expiry Date:</strong> ${data.expiryDate} (${data.daysUntilExpiry != null ? data.daysUntilExpiry + ' days left' : 'N/A'})</div>
+                    <div><strong>Storage Location:</strong> ${data.storageLocation}</div>
+                    <div><strong>Supplier:</strong> ${data.supplierName}</div>
+                    <div><strong>Price:</strong> $${data.price}</div>
+                    <div style="grid-column:span 2; background:#f8fafc; padding:12px; border-radius:8px; margin-top:8px;">
+                        <strong>FEFO Recommendation:</strong><br>${data.fefoMessage}
+                    </div>
+                `;
+                document.getElementById('viewDetailsModal').style.display = 'flex';
+            })
+            .catch(err => alert('Failed to fetch details'));
+    }
+
+    function openStockHistoryModal(id, name) {
+        document.getElementById('historyTitle').innerText = '📜 Stock Movement Log — ' + name;
+        fetch('/inventory/history/' + id)
+            .then(res => res.json())
+            .then(data => {
+                let html = '';
+                if (!data || data.length === 0) {
+                    html = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#64748b;">No stock movements recorded yet.</td></tr>';
+                } else {
+                    data.forEach(tx => {
+                        html += `
+                            <tr style="border-bottom:1px solid #f1f5f9;">
+                                <td style="padding:10px;">${tx.date}</td>
+                                <td style="padding:10px;"><span style="font-weight:bold; color:${tx.type === 'STOCK_IN' ? '#00a885' : '#e74c3c'};">${tx.type}</span></td>
+                                <td style="padding:10px; font-weight:bold;">${tx.quantity}</td>
+                                <td style="padding:10px;">${tx.previousStock}</td>
+                                <td style="padding:10px;">${tx.newStock}</td>
+                                <td style="padding:10px;">${tx.user}</td>
+                                <td style="padding:10px;">${tx.notes}</td>
+                            </tr>
+                        `;
+                    });
+                }
+                document.getElementById('historyTableBody').innerHTML = html;
+                document.getElementById('stockHistoryModal').style.display = 'flex';
+            })
+            .catch(err => alert('Failed to fetch history'));
+    }
+</script>
+
+</body>
+</html>
+

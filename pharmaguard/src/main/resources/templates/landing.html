@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharma Guard — Smart Medicine Expiry & Inventory Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/pharmaguard-theme.css">
+    <style>
+        :root {
+            --font-heading: 'Outfit', -apple-system, sans-serif;
+            --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            --hero-bg: radial-gradient(circle at 15% 15%, rgba(13, 148, 136, 0.25) 0%, transparent 40%),
+                       radial-gradient(circle at 85% 75%, rgba(37, 99, 235, 0.2) 0%, transparent 45%),
+                       linear-gradient(135deg, #090D16 0%, #0F172A 60%, #111827 100%);
+            --accent-teal: #14B8A6;
+            --accent-teal-glow: rgba(20, 184, 166, 0.4);
+            --accent-blue: #3B82F6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-body);
+        }
+
+        body {
+            background-color: #0B0F19;
+            color: #F8FAFC;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* HEADER & GLASS NAVBAR */
+        .landing-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: rgba(11, 15, 25, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 6%;
+            z-index: 1000;
+        }
+
+        .landing-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+        }
+
+        .brand-logo-icon {
+            width: 46px;
+            height: 46px;
+            background: linear-gradient(135deg, #14B8A6, #2563EB);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 0 20px rgba(20, 184, 166, 0.5);
+            animation: pulseGlow 3s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 15px rgba(20, 184, 166, 0.4); }
+            100% { box-shadow: 0 0 28px rgba(37, 99, 235, 0.7); }
+        }
+
+        .brand-title {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 800;
+            color: #FFFFFF;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-title span {
+            background: linear-gradient(135deg, #2DD4BF, #60A5FA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .landing-nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-landing-secondary {
+            padding: 11px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #E2E8F0;
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(8px);
+            transition: all 0.25s ease;
+        }
+
+        .btn-landing-secondary:hover {
+            border-color: #2DD4BF;
+            color: #2DD4BF;
+            background: rgba(45, 212, 191, 0.1);
+        }
+
+        .btn-landing-primary {
+            padding: 11px 26px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            color: #0F172A;
+            text-decoration: none;
+            background: linear-gradient(135deg, #2DD4BF, #38BDF8);
+            box-shadow: 0 8px 25px rgba(45, 212, 191, 0.4);
+            transition: all 0.25s ease;
+        }
+
+        .btn-landing-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(45, 212, 191, 0.6);
+            background: linear-gradient(135deg, #5EEAD4, #60A5FA);
+        }
+
+        /* HERO SECTION */
+        .hero-section {
+            padding-top: 170px;
+            padding-bottom: 110px;
+            background: var(--hero-bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 24px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 20px;
+            border-radius: 40px;
+            background: rgba(20, 184, 166, 0.12);
+            border: 1px solid rgba(45, 212, 191, 0.35);
+            color: #5EEAD4;
+            font-size: 13.5px;
+            font-weight: 700;
+            margin-bottom: 28px;
+            letter-spacing: 0.3px;
+        }
+
+        .hero-title {
+            font-family: var(--font-heading);
+            font-size: 56px;
+            font-weight: 900;
+            line-height: 1.12;
+            letter-spacing: -1.5px;
+            margin-bottom: 24px;
+            color: #FFFFFF;
+        }
+
+        .hero-title span {
+            background: linear-gradient(135deg, #2DD4BF 0%, #38BDF8 50%, #818CF8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-description {
+            font-size: 19px;
+            color: #94A3B8;
+            margin: 0 auto 40px;
+            max-width: 640px;
+            line-height: 1.65;
+        }
+
+        .hero-cta-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .btn-hero-main {
+            padding: 16px 36px;
+            border-radius: 14px;
+            font-size: 16.5px;
+            font-weight: 800;
+            color: #0B0F19;
+            background: linear-gradient(135deg, #2DD4BF, #38BDF8);
+            text-decoration: none;
+            box-shadow: 0 12px 30px rgba(45, 212, 191, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-hero-main:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 38px rgba(45, 212, 191, 0.6);
+            background: linear-gradient(135deg, #5EEAD4, #60A5FA);
+        }
+
+        .btn-hero-outline {
+            padding: 16px 32px;
+            border-radius: 14px;
+            font-size: 16.5px;
+            font-weight: 700;
+            color: #FFFFFF;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .btn-hero-outline:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* LIVE INTERACTIVE SIMULATOR CARD */
+        .hero-visual-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 28px;
+            padding: 34px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.7),
+                        0 0 40px rgba(20, 184, 166, 0.15);
+            position: relative;
+        }
+
+        .simulator-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 22px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .simulator-title {
+            font-family: var(--font-heading);
+            font-size: 15px;
+            font-weight: 800;
+            color: #2DD4BF;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #10B981;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #10B981;
+            animation: blinkDot 1.5s infinite;
+        }
+
+        @keyframes blinkDot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .sim-input-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .sim-input {
+            flex: 1;
+            padding: 12px 18px;
+            border-radius: 12px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.25s;
+        }
+
+        .sim-input:focus {
+            border-color: #2DD4BF;
+            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2);
+        }
+
+        .sim-date-input {
+            width: 140px;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .status-preview-box {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .preview-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-radius: 16px;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .preview-item:hover {
+            transform: scale(1.02);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .preview-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .preview-icon {
+            font-size: 26px;
+        }
+
+        .preview-name {
+            font-weight: 700;
+            font-size: 15px;
+            color: #FFFFFF;
+        }
+
+        .preview-batch {
+            font-size: 12.5px;
+            color: #94A3B8;
+        }
+
+        .status-pill {
+            padding: 5px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .pill-safe { background: rgba(16, 185, 129, 0.18); color: #34D399; border: 1px solid rgba(52, 211, 153, 0.35); }
+        .pill-soon { background: rgba(245, 158, 11, 0.18); color: #FBBF24; border: 1px solid rgba(251, 191, 36, 0.35); }
+        .pill-expired { background: rgba(239, 68, 68, 0.18); color: #F87171; border: 1px solid rgba(248, 113, 113, 0.35); }
+
+        /* TRUST METRICS STRIP */
+        .trust-strip {
+            background: rgba(15, 23, 42, 0.95);
+            border-y: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 32px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .trust-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            text-align: center;
+        }
+
+        .trust-number {
+            font-family: var(--font-heading);
+            font-size: 38px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #2DD4BF, #60A5FA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .trust-label {
+            font-size: 14px;
+            color: #94A3B8;
+            font-weight: 600;
+        }
+
+        /* FEATURES SECTION */
+        .features-section {
+            padding: 110px 24px;
+            max-width: 1240px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 64px;
+        }
+
+        .section-tag {
+            color: #2DD4BF;
+            font-weight: 800;
+            font-size: 13.5px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 42px;
+            font-weight: 800;
+            color: #FFFFFF;
+            letter-spacing: -1px;
+            line-height: 1.2;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 24px;
+            padding: 36px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #2DD4BF, transparent);
+            opacity: 0;
+            transition: opacity 0.35s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(45, 212, 191, 0.3);
+            box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.5),
+                        0 0 25px rgba(45, 212, 191, 0.1);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon-wrapper {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: rgba(20, 184, 166, 0.15);
+            border: 1px solid rgba(45, 212, 191, 0.3);
+            color: #2DD4BF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            margin-bottom: 24px;
+        }
+
+        .feature-card h3 {
+            font-family: var(--font-heading);
+            font-size: 22px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 14px;
+        }
+
+        .feature-card p {
+            font-size: 15.5px;
+            color: #94A3B8;
+            line-height: 1.65;
+        }
+
+        /* BANNER CTA */
+        .cta-banner-section {
+            padding: 60px 24px 110px;
+            max-width: 1240px;
+            margin: 0 auto;
+        }
+
+        .cta-banner-card {
+            background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.35), transparent 50%),
+                        linear-gradient(135deg, #0F766E 0%, #1E1B4B 100%);
+            border-radius: 36px;
+            padding: 70px 50px;
+            text-align: center;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5),
+                        0 0 50px rgba(15, 118, 110, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-banner-card h2 {
+            font-family: var(--font-heading);
+            font-size: 42px;
+            font-weight: 900;
+            margin-bottom: 18px;
+            letter-spacing: -1px;
+        }
+
+        .cta-banner-card p {
+            font-size: 19px;
+            color: #CBD5E1;
+            max-width: 640px;
+            margin: 0 auto 36px;
+        }
+
+        /* FOOTER */
+        .landing-footer {
+            background: #070A11;
+            color: #64748B;
+            padding: 48px 6%;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 14px;
+        }
+
+        @media (max-width: 900px) {
+            .hero-container {
+                grid-template-columns: 1fr;
+                gap: 40px;
+                text-align: center;
+            }
+            .hero-title {
+                font-size: 38px;
+            }
+            .hero-description {
+                margin: 0 auto 30px;
+            }
+            .hero-cta-group {
+                justify-content: center;
+            }
+            .trust-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <header class="landing-header">
+        <a href="/" class="landing-brand">
+            <div class="brand-logo-icon">💊</div>
+            <div class="brand-title">Pharma <span>Guard</span></div>
+        </a>
+
+        <div class="landing-nav-actions">
+            <a href="/login" class="btn-landing-secondary">Login</a>
+            <a href="/signup" class="btn-landing-primary">Get Started →</a>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+        <div class="hero-container">
+            <div class="hero-badge">
+                <span>🛡️ AI-Assisted Pharmacy Intelligence</span>
+            </div>
+            <h1 class="hero-title">
+                Smart Medicine Expiry &<br/><span>Inventory Management</span>
+            </h1>
+            <p class="hero-description">
+                Pharma Guard empowers pharmacies, clinics, and hospital inventory teams to automate expiry tracking, prevent medicine waste, and receive proactive OS desktop notifications before critical dates.
+            </p>
+
+            <div class="hero-cta-group">
+                <a href="/signup" class="btn-hero-main">Get Started Free →</a>
+                <a href="/login" class="btn-hero-outline">Sign In to Dashboard</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- TRUST STRIP -->
+    <div class="trust-strip">
+        <div class="trust-grid">
+            <div>
+                <div class="trust-number">100%</div>
+                <div class="trust-label">Real-Time Expiry Accuracy</div>
+            </div>
+            <div>
+                <div class="trust-number">&lt; 3.5s</div>
+                <div class="trust-label">Delayed Alert Latency</div>
+            </div>
+            <div>
+                <div class="trust-number">0%</div>
+                <div class="trust-label">Expired Waste Tolerance</div>
+            </div>
+            <div>
+                <div class="trust-number">256-Bit</div>
+                <div class="trust-label">Encrypted Security</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FEATURES SECTION -->
+    <section class="features-section">
+        <div class="section-header">
+            <span class="section-tag">Key System Capabilities</span>
+            <h2 class="section-title">Designed for Modern Pharmacy Excellence</h2>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">📅</div>
+                <h3>Dynamic Expiry Engine</h3>
+                <p>Status is evaluated automatically into Safe, Expiring Soon, and Expired based on calendar dates, eliminating human entry error.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">🔔</div>
+                <h3>Proactive Desktop Alerts</h3>
+                <p>Native OS & browser push notifications notify staff before expiry occurs, providing a 1-click action to view medicine details.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">🔄</div>
+                <h3>FEFO Inventory Intelligence</h3>
+                <p>Recommends First-Expired, First-Out dispensing priorities to optimize stock rotation and eliminate expired waste.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">🛡️</div>
+                <h3>Role-Based Security</h3>
+                <p>Protected routes ensure Administrators, Pharmacists, and Pharmacy Staff have appropriate access control and audit integrity.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA BANNER -->
+    <section class="cta-banner-section">
+        <div class="cta-banner-card">
+            <h2>Start Protecting Your Pharmacy Inventory Today</h2>
+            <p>Join Pharma Guard to automate medicine expiry tracking, safeguard patient care, and streamline inventory operations.</p>
+            <a href="/signup" class="btn-hero-main" style="display:inline-block; font-size:18px; padding:18px 42px;">Create Your Free Account →</a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="landing-footer">
+        <p>© 2026 Pharma Guard. All rights reserved. Smart Medicine Expiry & Inventory Management System.</p>
+    </footer>
+
+    <script>
+        function selectShowcaseMed(name, batch, days, code, aiMsg) {
+            document.getElementById('showcase-med-name').innerText = name;
+            document.getElementById('showcase-batch').innerText = '#' + batch;
+            document.getElementById('showcase-ai-msg').innerText = aiMsg;
+
+            const badge = document.getElementById('showcase-status-badge');
+            const counter = document.getElementById('showcase-days-counter');
+            const meter = document.getElementById('showcase-meter-fill');
+
+            if (code === 'EXPIRED') {
+                badge.className = 'status-pill pill-expired';
+                badge.innerText = `🔴 EXPIRED (${Math.abs(days)} DAYS AGO)`;
+                counter.innerText = `Expired ${Math.abs(days)} Days Ago`;
+                counter.style.color = '#F87171';
+                meter.style.width = '100%';
+                meter.style.background = 'linear-gradient(90deg, #DC2626, #991B1B)';
+            } else if (code === 'SOON') {
+                badge.className = 'status-pill pill-soon';
+                badge.innerText = `🟠 EXPIRING IN ${days} DAYS`;
+                counter.innerText = `${days} Days Left`;
+                counter.style.color = '#F59E0B';
+                meter.style.width = Math.max(15, (days / 30) * 100) + '%';
+                meter.style.background = 'linear-gradient(90deg, #F59E0B, #EF4444)';
+            } else {
+                badge.className = 'status-pill pill-safe';
+                badge.innerText = `🟢 SAFE (${days} DAYS)`;
+                counter.innerText = `${days} Days Remaining`;
+                counter.style.color = '#34D399';
+                meter.style.width = '85%';
+                meter.style.background = 'linear-gradient(90deg, #10B981, #059669)';
+            }
+        }
+    </script>
+</body>
+</html>
+

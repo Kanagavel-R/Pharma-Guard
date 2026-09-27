@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharma Guard — Access Denied</title>
+    <link rel="stylesheet" href="/css/pharmaguard-theme.css">
+</head>
+<body style="display:flex; align-items:center; justify-content:center; min-height:100vh; background:var(--bg-body, #F8FAFC);">
+
+<div class="card" style="max-width:480px; width:90%; text-align:center; padding:40px 32px; box-shadow:0 10px 25px rgba(0,0,0,0.08);">
+    <div style="font-size:56px; margin-bottom:16px; color:var(--danger, #DC2626);"><i class="fa-solid fa-ban"></i></div>
+    <h1 style="font-size:24px; font-weight:800; color:var(--danger, #DC2626); margin-bottom:12px;">Access Denied (403)</h1>
+    <p style="color:var(--text-secondary, #475569); font-size:14px; line-height:1.6; margin-bottom:24px;">
+        You do not have permission to perform this action.<br/>
+        This operation requires <strong>ADMIN</strong> privileges.
+    </p>
+    <div style="display:flex; justify-content:center; gap:12px;">
+        <a href="/dashboard" class="btn btn-primary" style="padding:10px 24px;">← Back to Dashboard</a>
+        <a href="/medicines" class="btn btn-outline" style="padding:10px 24px;">View Medicines</a>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharma Guard — Export & Report Generation</title>
+    <link rel="stylesheet" href="/css/pharmaguard-theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+<!-- NAVIGATION BAR -->
+<header class="navbar">
+    <a href="/dashboard" class="brand" style="text-decoration:none;">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3L19 6V11C19 15.5 16.1 19.5 12 21C7.9 19.5 5 15.5 5 11V6L12 3Z" fill="rgba(255,255,255,0.25)" stroke="white" stroke-width="1.5"/>
+                <path d="M12 7V15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M9 11H15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="brand-text">
+            <h2>PHARMA GUARD</h2>
+            <span>VERIFY. PROTECT. STAY SAFE.</span>
+        </div>
+    </a>
+
+    <button type="button" class="menu-btn" onclick="toggleMenu()" title="Toggle navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6H20"/><path d="M4 12H20"/><path d="M4 18H20"/>
+        </svg>
+    </button>
+
+    <nav class="nav-links" id="navLinks">
+        <a href="/dashboard" class="nav-link">Dashboard</a>
+        <a href="/medicines" class="nav-link">Medicines</a>
+        <a href="/inventory" class="nav-link">Inventory</a>
+        <a href="/transactions" class="nav-link">Transactions</a>
+        <a href="/alerts" class="nav-link">Alerts</a>
+        <a href="/reports" class="nav-link active">Reports</a>
+    </nav>
+
+    <div class="nav-actions">
+        <button type="button" class="icon-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">
+            <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 12.8A8.5 8.5 0 1111.2 3 6.5 6.5 0 0021 12.8Z"/>
+            </svg>
+        </button>
+        <a href="/alerts" class="icon-btn" title="Notifications" style="text-decoration:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M18 8A6 6 0 006 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/>
+                <path d="M10 21H14"/>
+            </svg>
+        </a>
+
+        <div class="profile" id="profile" onclick="toggleProfile()">
+            <div class="avatar" th:text="${#strings.substring(username != null ? username : 'A', 0, 1).toUpperCase()}">A</div>
+            <div class="profile-info">
+                <strong th:text="${username != null ? username : 'Admin'}">Admin</strong>
+                <small>Administrator</small>
+            </div>
+            <svg class="profile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M6 9L12 15L18 9"/>
+            </svg>
+
+            <div class="profile-menu">
+                <a href="/profile">Profile</a>
+                <a href="/settings">Settings</a>
+                <a href="/reports">Reports & Exports</a>
+                <form th:action="@{/logout}" method="post" style="margin:0;">
+                    <button type="submit" class="logout" style="width:100%; border:none; background:none; text-align:left; cursor:pointer; font-family:inherit;">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="app-container">
+    <div style="margin-bottom:24px;">
+        <h1 style="font-size:28px; font-weight:800; color:var(--text-primary);">📄 Production Report Generation & Data Export</h1>
+        <p style="color:var(--text-secondary); font-size:14px;">Generate, preview, and download CSV / Excel & PDF reports for inventory, expiry, recalls, and audit logs.</p>
+    </div>
+
+    <!-- REPORT CARDS GRID -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
+        <div class="card" style="padding:24px;">
+            <div style="font-size:32px; color:var(--primary); margin-bottom:12px;"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <h3 style="font-size:18px; font-weight:700; color:var(--text-primary);">Full Inventory Report</h3>
+            <p style="color:var(--text-secondary); font-size:13px; margin:8px 0 16px 0;">Complete export of all medicines, batch numbers, categories, stock quantities, unit prices, and storage locations.</p>
+            <a href="/reports/export/inventory/csv" class="btn btn-primary" style="text-decoration:none;"><i class="fa-solid fa-download"></i> Download CSV / Excel</a>
+        </div>
+
+        <div class="card" style="padding:24px;">
+            <div style="font-size:32px; color:#dc2626; margin-bottom:12px;"><i class="fa-solid fa-hourglass-half"></i></div>
+            <h3 style="font-size:18px; font-weight:700; color:var(--text-primary);">Expiry & Risk Report</h3>
+            <p style="color:var(--text-secondary); font-size:13px; margin:8px 0 16px 0;">Detailed breakdown of expired batches, medicines expiring within 30 days, and shelf-life warning tiers.</p>
+            <a href="/reports/export/expiry/csv" class="btn btn-primary" style="text-decoration:none; background:#dc2626; border-color:#dc2626;"><i class="fa-solid fa-download"></i> Download CSV / Excel</a>
+        </div>
+
+        <div class="card" style="padding:24px;">
+            <div style="font-size:32px; color:#0284c7; margin-bottom:12px;"><i class="fa-solid fa-clipboard-list"></i></div>
+            <h3 style="font-size:18px; font-weight:700; color:var(--text-primary);">Centralized Audit Log Report</h3>
+            <p style="color:var(--text-secondary); font-size:13px; margin:8px 0 16px 0;">Export immutable audit event trails detailing user actions, system modifications, logins, and timestamps.</p>
+            <a href="/reports/export/audit/csv" class="btn btn-primary" style="text-decoration:none; background:#0284c7; border-color:#0284c7;"><i class="fa-solid fa-download"></i> Download CSV / Excel</a>
+        </div>
+
+        <div class="card" style="padding:24px;">
+            <div style="font-size:32px; color:#d97706; margin-bottom:12px;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3 style="font-size:18px; font-weight:700; color:var(--text-primary);">Medicine Recalls Report</h3>
+            <p style="color:var(--text-secondary); font-size:13px; margin:8px 0 16px 0;">Summary of active and historical batch recalls, severity levels, affected stock quantities, and reasons.</p>
+            <a href="/reports/export/recalls/csv" class="btn btn-primary" style="text-decoration:none; background:#d97706; border-color:#d97706;"><i class="fa-solid fa-download"></i> Download CSV / Excel</a>
+        </div>
+    </div>
+</div>
+
+<div class="ai-assistant-trigger" onclick="toggleAiChat()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+    AI Assistant
+</div>
+
+<footer class="footer">
+    <div class="footer-content">
+        <div>
+            <strong style="color:var(--text-primary); font-size:16px;">PHARMA GUARD</strong>
+            <div style="font-size:12px; color:var(--text-secondary);">Verify. Protect. Stay Safe.</div>
+        </div>
+    </div>
+</footer>
+
+<script src="/js/pharmaguard-theme.js"></script>
+</body>
+</html>

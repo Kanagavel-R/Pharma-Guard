@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharma Guard — User Profile</title>
+    <link rel="stylesheet" href="/css/pharmaguard-theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .profile-wrapper {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px 60px 20px;
+        }
+
+        /* Hero Banner Card */
+        .hero-profile-card {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-radius: 20px;
+            padding: 32px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 12px 30px -5px rgba(15, 23, 42, 0.25);
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-profile-card::after {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, rgba(13,148,136,0.15) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .hero-user-flex {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            z-index: 1;
+        }
+
+        /* Avatar Container */
+        .avatar-upload-box {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+        .avatar-circle-lg {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.35);
+            object-fit: cover;
+            overflow: hidden;
+            text-transform: uppercase;
+        }
+        .avatar-circle-lg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .avatar-edit-overlay {
+            position: absolute;
+            bottom: 0; right: 0;
+            background: #0d9488;
+            color: #ffffff;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            border: 2px solid #0f172a;
+            transition: transform 0.2s ease;
+        }
+        .avatar-edit-overlay:hover {
+            transform: scale(1.1);
+        }
+
+        /* Hero Text & Badges */
+        .hero-user-details h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0 0 6px 0;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+        .hero-badges-line {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .badge-role {
+            padding: 4px 14px;
+            border-radius: 20px;
+            background: rgba(13, 148, 136, 0.25);
+            color: #2dd4bf;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border: 1px solid rgba(45, 212, 191, 0.3);
+        }
+        .badge-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 14px;
+            border-radius: 20px;
+            background: rgba(22, 163, 74, 0.2);
+            color: #4ade80;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+        .badge-status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 8px #4ade80;
+        }
+        .hero-meta-items {
+            display: flex;
+            gap: 20px;
+            color: #94a3b8;
+            font-size: 0.88rem;
+        }
+        .hero-meta-items span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Action Buttons */
+        .hero-actions-group {
+            display: flex;
+            gap: 12px;
+            z-index: 1;
+        }
+
+        /* Main Content Grid */
+        .profile-grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 850px) {
+            .profile-grid-layout {
+                grid-template-columns: 1fr;
+            }
+            .hero-profile-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 24px;
+            }
+        }
+
+        /* Cards */
+        .profile-section-card {
+            background: var(--card-bg, #ffffff);
+            border-radius: 16px;
+            border: 1px solid var(--border-color, #e2e8f0);
+            padding: 26px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+        }
+        .section-card-header {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-heading, #0f172a);
+            margin-bottom: 22px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color, #e2e8f0);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .section-card-header span {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Information Grid */
+        .info-pair-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+        @media (max-width: 550px) {
+            .info-pair-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .info-cell {
+            background: var(--bg-muted, #f8fafc);
+            border-radius: 12px;
+            padding: 14px 18px;
+            border: 1px solid var(--border-color, #f1f5f9);
+            transition: border-color 0.2s;
+        }
+        .cell-label {
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+        .cell-value {
+            font-size: 0.98rem;
+            font-weight: 600;
+            color: var(--text-main, #1e293b);
+            word-break: break-word;
+        }
+        .cell-input {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.95rem;
+            font-family: inherit;
+            box-sizing: border-box;
+            background: #ffffff;
+            display: none;
+        }
+        .cell-input:focus {
+            outline: none;
+            border-color: #0d9488;
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+        }
+        .inline-error {
+            color: #dc2626;
+            font-size: 0.78rem;
+            margin-top: 4px;
+            display: none;
+        }
+
+        /* Editing Mode State */
+        .is-editing .cell-value-text {
+            display: none;
+        }
+        .is-editing .cell-input {
+            display: block;
+        }
+        .is-editing .info-cell-editable {
+            background: #ffffff;
+            border-color: #cbd5e1;
+        }
+
+        /* Photo Upload Controls Modal / Strip */
+        .photo-controls-strip {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        /* Button Styling */
+        .btn-teal {
+            background: #0d9488;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .btn-teal:hover {
+            background: #0f766e;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+        }
+        .btn-outline-light {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .btn-outline-light:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ==========================================================================
+     HEADER NAVBAR
+     ========================================================================== -->
+<header class="navbar">
+    <a href="/dashboard" class="brand" style="text-decoration:none;">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3L19 6V11C19 15.5 16.1 19.5 12 21C7.9 19.5 5 15.5 5 11V6L12 3Z" fill="rgba(255,255,255,0.25)" stroke="white" stroke-width="1.5"/>
+                <path d="M12 7V15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M9 11H15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="brand-text">
+            <h2>PHARMA GUARD</h2>
+            <span>VERIFY. PROTECT. STAY SAFE.</span>
+        </div>
+    </a>
+
+    <button type="button" class="menu-btn" onclick="toggleMenu()" title="Toggle navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6H20"/><path d="M4 12H20"/><path d="M4 18H20"/>
+        </svg>
+    </button>
+
+    <nav class="nav-links" id="navLinks">
+        <a href="/dashboard" class="nav-link"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+        <a href="/medicines" class="nav-link"><i class="fa-solid fa-pills"></i> Medicines</a>
+        <a href="/inventory" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a>
+        <a href="/transactions" class="nav-link"><i class="fa-solid fa-list-check"></i> Transactions</a>
+        <a href="/alerts" class="nav-link"><i class="fa-solid fa-triangle-exclamation"></i> Alerts</a>
+        <a href="/suppliers" class="nav-link"><i class="fa-solid fa-truck-field"></i> Suppliers</a>
+        <a href="/verifications" class="nav-link"><i class="fa-solid fa-clock-rotate-left"></i> Verification History</a>
+        <a href="/scan" class="nav-link"><i class="fa-solid fa-qrcode"></i> Scan Medicine</a>
+    </nav>
+
+    <div class="nav-actions">
+        <button type="button" class="icon-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">
+            <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12.8A8.5 8.5 0 1111.2 3 6.5 6.5 0 0021 12.8Z"/></svg>
+        </button>
+
+        <button type="button" class="icon-btn" id="notif-bell-btn" onclick="toggleNotificationDrawer()" style="position:relative;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 006 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/><path d="M10 21H14"/></svg>
+            <span class="notification-badge" id="nav-notif-badge" th:if="${activeAlertCount > 0}" th:text="${activeAlertCount}">3</span>
+        </button>
+
+        <!-- USER PROFILE DROPDOWN -->
+        <div class="profile" id="profile" onclick="toggleProfile()">
+            <div class="avatar" id="header-avatar" style="overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                <img th:if="${currentUser != null && currentUser.profilePhoto != null && !currentUser.profilePhoto.isEmpty()}" id="header-avatar-img" th:src="${currentUser.profilePhoto}" style="width:100%; height:100%; object-fit:cover;" alt="Avatar">
+                <span th:unless="${currentUser != null && currentUser.profilePhoto != null && !currentUser.profilePhoto.isEmpty()}" id="header-avatar-text" th:text="${currentUser != null ? currentUser.initials : 'A'}">A</span>
+            </div>
+            <div class="profile-info">
+                <strong id="header-username" th:text="${currentUser != null ? currentUser.fullName : username}">Admin</strong>
+                <small id="header-role" th:text="${currentUser != null ? currentUser.displayRole : 'Administrator'}">Administrator</small>
+            </div>
+            <svg class="profile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 9L12 15L18 9"/></svg>
+
+            <div class="profile-menu">
+                <a href="/profile"><i class="fa-solid fa-user-circle"></i> Profile</a>
+                <a href="/settings"><i class="fa-solid fa-gear"></i> Settings</a>
+                <form th:action="@{/logout}" method="post" style="margin:0;">
+                    <button type="submit" class="logout" style="width:100%; border:none; background:none; text-align:left; cursor:pointer; font-family:inherit;">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ==========================================================================
+     MAIN PROFILE PAGE CONTENT
+     ========================================================================== -->
+<div class="profile-wrapper" id="profileFormContainer">
+
+    <!-- Flash / Dynamic Alert Banner -->
+    <div id="alert-banner">
+        <div th:if="${successMsg}" class="alert alert-success" style="padding:14px 18px; border-radius:12px; background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; margin-bottom:24px; font-weight:500;">
+            <span th:text="${successMsg}">✓ Profile updated successfully.</span>
+        </div>
+        <div th:if="${errorMsg}" class="alert alert-danger" style="padding:14px 18px; border-radius:12px; background:#fef2f2; color:#991b1b; border:1px solid #fecaca; margin-bottom:24px; font-weight:500;">
+            <span th:text="${errorMsg}">⚠️ Failed to update profile.</span>
+        </div>
+    </div>
+
+    <!-- PROFILE HERO OVERVIEW CARD -->
+    <div class="hero-profile-card">
+        <div class="hero-user-flex">
+            <!-- Profile Photo / Initials Box -->
+            <div class="avatar-upload-box">
+                <div class="avatar-circle-lg" id="hero-avatar-box">
+                    <img th:if="${currentUser != null && currentUser.profilePhoto != null && !currentUser.profilePhoto.isEmpty()}" id="hero-avatar-img" th:src="${currentUser.profilePhoto}" alt="Profile Photo">
+                    <span th:unless="${currentUser != null && currentUser.profilePhoto != null && !currentUser.profilePhoto.isEmpty()}" id="hero-avatar-text" th:text="${currentUser != null ? currentUser.initials : 'A'}">A</span>
+                </div>
+                <label for="photoFileInput" class="avatar-edit-overlay" title="Change Photo">
+                    <i class="fa-solid fa-camera"></i>
+                </label>
+                <input type="file" id="photoFileInput" accept="image/jpeg,image/jpg,image/png,image/webp" style="display:none;" onchange="handlePhotoUpload(this)">
+            </div>
+
+            <!-- Details Title -->
+            <div class="hero-user-details">
+                <div class="hero-badges-line">
+                    <span class="badge-role" id="hero-role-badge" th:text="${currentUser != null ? currentUser.displayRole : 'Administrator'}">Administrator</span>
+                    <span class="badge-status" id="hero-status-badge">
+                        <span class="badge-status-dot"></span>
+                        <span th:text="${currentUser != null ? currentUser.accountStatusText : 'Active'}">Active</span>
+                    </span>
+                </div>
+                <h1 id="hero-display-name" th:text="${currentUser != null ? currentUser.fullName : 'Admin'}">Administrator</h1>
+                <div class="hero-meta-items">
+                    <span><i class="fa-regular fa-envelope"></i> <span id="hero-email" th:text="${currentUser != null ? currentUser.email : 'admin@pharmaguard.com'}">admin@pharmaguard.com</span></span>
+                    <span><i class="fa-solid fa-id-badge"></i> <span id="hero-empid" th:text="${currentUser != null ? currentUser.employeeId : 'PG-ADM-001'}">PG-ADM-001</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="hero-actions-group">
+            <div id="view-mode-buttons">
+                <button type="button" class="btn-teal" onclick="enableEditMode()">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+                </button>
+                <button type="button" class="btn-outline-light" onclick="triggerRemovePhoto()" id="btn-remove-photo" th:style="${currentUser != null && currentUser.profilePhoto != null && !currentUser.profilePhoto.isEmpty()} ? 'display:inline-flex;' : 'display:none;'">
+                    <i class="fa-solid fa-trash-can"></i> Remove Photo
+                </button>
+            </div>
+            <div id="edit-mode-buttons" style="display:none;">
+                <button type="button" class="btn-outline-light" onclick="cancelEditMode()">Cancel</button>
+                <button type="button" class="btn-teal" id="save-changes-btn" onclick="saveProfileChanges()">
+                    <i class="fa-solid fa-check"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN TWO-COLUMN INFORMATION GRID -->
+    <div class="profile-grid-layout" id="infoGridContainer">
+
+        <!-- LEFT COLUMN: PERSONAL INFORMATION -->
+        <div class="profile-section-card">
+            <div class="section-card-header">
+                <span><i class="fa-solid fa-user" style="color:#0d9488;"></i> Personal Information</span>
+            </div>
+            <div class="info-pair-grid">
+                <div class="info-cell info-cell-editable">
+                    <div class="cell-label">First Name</div>
+                    <div class="cell-value cell-value-text" id="val-first-name" th:text="${currentUser != null ? currentUser.firstName : 'Admin'}">Admin</div>
+                    <input type="text" class="cell-input" id="edit-first-name" th:value="${currentUser != null ? currentUser.firstName : ''}" placeholder="First Name">
+                    <div class="inline-error" id="err-first-name">First name is required (min 2 letters).</div>
+                </div>
+
+                <div class="info-cell info-cell-editable">
+                    <div class="cell-label">Last Name</div>
+                    <div class="cell-value cell-value-text" id="val-last-name" th:text="${currentUser != null ? currentUser.lastName : ''}">User</div>
+                    <input type="text" class="cell-input" id="edit-last-name" th:value="${currentUser != null ? currentUser.lastName : ''}" placeholder="Last Name">
+                    <div class="inline-error" id="err-last-name">Last name is required.</div>
+                </div>
+
+                <div class="info-cell">
+                    <div class="cell-label">Email Address (Read-Only)</div>
+                    <div class="cell-value" id="val-email" th:text="${currentUser != null ? currentUser.email : 'admin@pharmaguard.com'}">admin@pharmaguard.com</div>
+                </div>
+
+                <div class="info-cell info-cell-editable">
+                    <div class="cell-label">Phone Number</div>
+                    <div class="cell-value cell-value-text" id="val-phone" th:text="${currentUser != null && currentUser.phoneNumber != null ? currentUser.phoneNumber : '+91 98765 43210'}">+91 98765 43210</div>
+                    <input type="text" class="cell-input" id="edit-phone" th:value="${currentUser != null && currentUser.phoneNumber != null ? currentUser.phoneNumber : '+91 98765 43210'}" placeholder="+91 XXXXX XXXXX">
+                    <div class="inline-error" id="err-phone">Please enter a valid phone number.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: ACCOUNT & ORGANIZATION DETAILS -->
+        <div class="profile-section-card">
+            <div class="section-card-header">
+                <span><i class="fa-solid fa-shield-halved" style="color:#0d9488;"></i> Account Information</span>
+            </div>
+            <div class="info-pair-grid">
+                <div class="info-cell">
+                    <div class="cell-label">System Role</div>
+                    <div class="cell-value" id="val-role" th:text="${currentUser != null ? currentUser.displayRole : 'Administrator'}">Administrator</div>
+                </div>
+
+                <div class="info-cell">
+                    <div class="cell-label">Account Status</div>
+                    <div class="cell-value" style="color:#16a34a; display:flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-circle-check"></i> <span id="val-status-text" th:text="${currentUser != null ? currentUser.accountStatusText : 'Active'}">Active</span>
+                    </div>
+                </div>
+
+                <div class="info-cell">
+                    <div class="cell-label">Employee ID</div>
+                    <div class="cell-value" id="val-empid" th:text="${currentUser != null ? currentUser.employeeId : 'PG-ADM-001'}">PG-ADM-001</div>
+                </div>
+
+                <div class="info-cell">
+                    <div class="cell-label">Date Joined</div>
+                    <div class="cell-value" th:text="${currentUser != null && currentUser.createdAt != null ? #temporals.format(currentUser.createdAt, 'dd MMMM yyyy') : '25 August 2026'}">25 August 2026</div>
+                </div>
+
+                <div class="info-cell" style="grid-column: span 2;">
+                    <div class="cell-label">Last Successful Login</div>
+                    <div class="cell-value" id="val-last-login" th:text="${currentUser != null && currentUser.lastLogin != null ? #temporals.format(currentUser.lastLogin, 'dd MMMM yyyy, h:mm a') : '25 August 2026, 5:30 PM'}">25 August 2026, 5:30 PM</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- LOWER CARD: PHARMACY INFORMATION & OPERATING HOURS -->
+    <div class="profile-section-card" id="pharmacy-info-section" style="margin-top:24px;">
+        <div class="section-card-header">
+            <span><i class="fa-solid fa-hospital" style="color:#0d9488;"></i> 🏥 Pharmacy Information</span>
+            <div id="pharmacy-action-btns">
+                <button type="button" class="btn btn-sm btn-outline" id="btn-edit-pharmacy" onclick="enablePharmacyEdit()"><i class="fa-solid fa-pen"></i> Edit Pharmacy Info</button>
+                <div id="pharmacy-save-cancel-btns" style="display:none; gap:8px;">
+                    <button type="button" class="btn btn-sm btn-outline" onclick="cancelPharmacyEdit()">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-teal" id="btn-save-pharmacy" onclick="savePharmacyInfo()"><i class="fa-solid fa-check"></i> Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="pharmacy-alert-box"></div>
+
+        <form id="pharmacyInfoForm" onsubmit="event.preventDefault(); savePharmacyInfo();">
+            <div class="info-pair-grid" style="margin-bottom:24px;">
+                <div class="info-cell info-cell-editable">
+                    <div class="cell-label">Pharmacy Name</div>
+                    <div class="cell-value cell-value-text" id="val-pharma-name" th:text="${pharmacySettings != null ? pharmacySettings.pharmacyName : 'Pharma Guard Central Pharmacy'}">Pharma Guard Central Pharmacy</div>
+                    <input type="text" class="cell-input" id="edit-pharma-name" th:value="${pharmacySettings != null ? pharmacySettings.pharmacyName : 'Pharma Guard Central Pharmacy'}" required placeholder="Pharmacy Name">
+                    <div class="inline-error" id="err-pharma-name">Pharmacy name is required.</div>
+                </div>
+
+                <div class="info-cell info-cell-editable">
+                    <div class="cell-label">Registration / License Number</div>
+                    <div class="cell-value cell-value-text" id="val-pharma-license" th:text="${pharmacySettings != null ? pharmacySettings.pharmacyId : 'PG-IND-8842'}">PG-IND-8842</div>
+                    <input type="text" class="cell-input" id="edit-pharma-license" th:value="${pharmacySettings != null ? pharmacySettings.pharmacyId : 'PG-IND-8842'}" placeholder="Registration / License No.">
+                    <div class="inline-error" id="err-pharma-license">License number is required.</div>
+                </div>
+
+                <div class="info-cell info-cell-editable" style="grid-column: span 2;">
+                    <div class="cell-label">Pharmacy Address</div>
+                    <div class="cell-value cell-value-text" id="val-pharma-address" th:text="${pharmacySettings != null ? pharmacySettings.address : '104 Healthcare Boulevard, Medical Enclave'}">104 Healthcare Boulevard, Medical Enclave</div>
+                    <input type="text" class="cell-input" id="edit-pharma-address" th:value="${pharmacySettings != null ? pharmacySettings.address : '104 Healthcare Boulevard, Medical Enclave'}" placeholder="Street Address, City, State">
+                    <div class="inline-error" id="err-pharma-address">Address is required.</div>
+                </div>
+
+                <div class="info-cell info-cell-editable">
+                    <div class="cell-label">Contact Number</div>
+                    <div class="cell-value cell-value-text" id="val-pharma-phone" th:text="${pharmacySettings != null ? pharmacySettings.phone : '+91 98765 43210'}">+91 98765 43210</div>
+                    <input type="text" class="cell-input" id="edit-pharma-phone" th:value="${pharmacySettings != null ? pharmacySettings.phone : '+91 98765 43210'}" placeholder="+91 XXXXX XXXXX">
+                    <div class="inline-error" id="err-pharma-phone">Please enter a valid phone number.</div>
+                </div>
+
+                <div class="info-cell info-cell-editable">
+                    <div class="cell-label">Official Email</div>
+                    <div class="cell-value cell-value-text" id="val-pharma-email" th:text="${pharmacySettings != null ? pharmacySettings.email : 'contact@pharmaguard.com'}">contact@pharmaguard.com</div>
+                    <input type="email" class="cell-input" id="edit-pharma-email" th:value="${pharmacySettings != null ? pharmacySettings.email : 'contact@pharmaguard.com'}" placeholder="email@pharmaguard.com">
+                    <div class="inline-error" id="err-pharma-email">Please enter a valid email address.</div>
+                </div>
+            </div>
+
+            <!-- OPERATING HOURS SUB-SECTION -->
+            <div style="border-top:1px solid #e2e8f0; padding-top:20px;">
+                <h4 style="font-size:0.95rem; font-weight:700; color:#0f172a; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-clock" style="color:#0d9488;"></i> Operating Hours
+                </h4>
+
+                <div style="display:flex; flex-direction:column; gap:10px;" id="operatingHoursContainer">
+                    <!-- MONDAY -->
+                    <div class="hours-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#f8fafc; border-radius:10px; border:1px solid #f1f5f9;">
+                        <span style="font-weight:600; width:100px; color:#334155;">Monday</span>
+                        <div class="hours-view-text" id="val-hours-mon" th:text="${pharmacySettings != null ? pharmacySettings.monHours : '09:00 AM - 09:00 PM'}" style="font-size:0.9rem; font-weight:600; color:#0f172a;">09:00 AM - 09:00 PM</div>
+                        <div class="hours-edit-controls" style="display:none; align-items:center; gap:10px;">
+                            <input type="text" class="cell-input" id="edit-hours-mon" th:value="${pharmacySettings != null ? pharmacySettings.monHours : '09:00 AM - 09:00 PM'}" style="display:block; width:220px;" placeholder="09:00 AM - 09:00 PM or Closed">
+                        </div>
+                    </div>
+
+                    <!-- TUESDAY -->
+                    <div class="hours-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#f8fafc; border-radius:10px; border:1px solid #f1f5f9;">
+                        <span style="font-weight:600; width:100px; color:#334155;">Tuesday</span>
+                        <div class="hours-view-text" id="val-hours-tue" th:text="${pharmacySettings != null ? pharmacySettings.tueHours : '09:00 AM - 09:00 PM'}" style="font-size:0.9rem; font-weight:600; color:#0f172a;">09:00 AM - 09:00 PM</div>
+                        <div class="hours-edit-controls" style="display:none; align-items:center; gap:10px;">
+                            <input type="text" class="cell-input" id="edit-hours-tue" th:value="${pharmacySettings != null ? pharmacySettings.tueHours : '09:00 AM - 09:00 PM'}" style="display:block; width:220px;" placeholder="09:00 AM - 09:00 PM or Closed">
+                        </div>
+                    </div>
+
+                    <!-- WEDNESDAY -->
+                    <div class="hours-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#f8fafc; border-radius:10px; border:1px solid #f1f5f9;">
+                        <span style="font-weight:600; width:100px; color:#334155;">Wednesday</span>
+                        <div class="hours-view-text" id="val-hours-wed" th:text="${pharmacySettings != null ? pharmacySettings.wedHours : '09:00 AM - 09:00 PM'}" style="font-size:0.9rem; font-weight:600; color:#0f172a;">09:00 AM - 09:00 PM</div>
+                        <div class="hours-edit-controls" style="display:none; align-items:center; gap:10px;">
+                            <input type="text" class="cell-input" id="edit-hours-wed" th:value="${pharmacySettings != null ? pharmacySettings.wedHours : '09:00 AM - 09:00 PM'}" style="display:block; width:220px;" placeholder="09:00 AM - 09:00 PM or Closed">
+                        </div>
+                    </div>
+
+                    <!-- THURSDAY -->
+                    <div class="hours-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#f8fafc; border-radius:10px; border:1px solid #f1f5f9;">
+                        <span style="font-weight:600; width:100px; color:#334155;">Thursday</span>
+                        <div class="hours-view-text" id="val-hours-thu" th:text="${pharmacySettings != null ? pharmacySettings.thuHours : '09:00 AM - 09:00 PM'}" style="font-size:0.9rem; font-weight:600; color:#0f172a;">09:00 AM - 09:00 PM</div>
+                        <div class="hours-edit-controls" style="display:none; align-items:center; gap:10px;">
+                            <input type="text" class="cell-input" id="edit-hours-thu" th:value="${pharmacySettings != null ? pharmacySettings.thuHours : '09:00 AM - 09:00 PM'}" style="display:block; width:220px;" placeholder="09:00 AM - 09:00 PM or Closed">
+                        </div>
+                    </div>
+
+                    <!-- FRIDAY -->
+                    <div class="hours-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#f8fafc; border-radius:10px; border:1px solid #f1f5f9;">
+                        <span style="font-weight:600; width:100px; color:#334155;">Friday</span>
+                        <div class="hours-view-text" id="val-hours-fri" th:text="${pharmacySettings != null ? pharmacySettings.friHours : '09:00 AM - 09:00 PM'}" style="font-size:0.9rem; font-weight:600; color:#0f172a;">09:00 AM - 09:00 PM</div>
+                        <div class="hours-edit-controls" style="display:none; align-items:center; gap:10px;">
+                            <input type="text" class="cell-input" id="edit-hours-fri" th:value="${pharmacySettings != null ? pharmacySettings.friHours : '09:00 AM - 09:00 PM'}" style="display:block; width:220px;" placeholder="09:00 AM - 09:00 PM or Closed">
+                        </div>
+                    </div>
+
+                    <!-- SATURDAY -->
+                    <div class="hours-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#f8fafc; border-radius:10px; border:1px solid #f1f5f9;">
+                        <span style="font-weight:600; width:100px; color:#334155;">Saturday</span>
+                        <div class="hours-view-text" id="val-hours-sat" th:text="${pharmacySettings != null ? pharmacySettings.satHours : '09:00 AM - 09:00 PM'}" style="font-size:0.9rem; font-weight:600; color:#0f172a;">09:00 AM - 09:00 PM</div>
+                        <div class="hours-edit-controls" style="display:none; align-items:center; gap:10px;">
+                            <input type="text" class="cell-input" id="edit-hours-sat" th:value="${pharmacySettings != null ? pharmacySettings.satHours : '09:00 AM - 09:00 PM'}" style="display:block; width:220px;" placeholder="09:00 AM - 09:00 PM or Closed">
+                        </div>
+                    </div>
+
+                    <!-- SUNDAY -->
+                    <div class="hours-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#f8fafc; border-radius:10px; border:1px solid #f1f5f9;">
+                        <span style="font-weight:600; width:100px; color:#334155;">Sunday</span>
+                        <div class="hours-view-text" id="val-hours-sun" th:text="${pharmacySettings != null ? pharmacySettings.sunHours : 'Closed'}" style="font-size:0.9rem; font-weight:600; color:#e11d48;">Closed</div>
+                        <div class="hours-edit-controls" style="display:none; align-items:center; gap:10px;">
+                            <input type="text" class="cell-input" id="edit-hours-sun" th:value="${pharmacySettings != null ? pharmacySettings.sunHours : 'Closed'}" style="display:block; width:220px;" placeholder="Closed or 10:00 AM - 04:00 PM">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<!-- ==========================================================================
+     SCRIPTS & PROFILE CONTROLLER LOGIC
+     ========================================================================== -->
+<script src="/js/pharmaguard-theme.js"></script>
+<script>
+    let isEditing = false;
+    let originalData = {};
+
+    function toggleProfile() {
+        const el = document.getElementById('profile');
+        if (el) el.classList.toggle('active');
+    }
+
+    function enableEditMode() {
+        isEditing = true;
+        document.getElementById('infoGridContainer').classList.add('is-editing');
+        document.getElementById('profileFormContainer').classList.add('is-editing');
+        document.getElementById('view-mode-buttons').style.display = 'none';
+        document.getElementById('edit-mode-buttons').style.display = 'flex';
+
+        // Cache original field values
+        originalData = {
+            firstName: document.getElementById('edit-first-name').value,
+            lastName: document.getElementById('edit-last-name').value,
+            phone: document.getElementById('edit-phone').value,
+            pharmacy: document.getElementById('edit-pharmacy').value
+        };
+
+        clearInlineErrors();
+    }
+
+    function cancelEditMode() {
+        isEditing = false;
+        document.getElementById('infoGridContainer').classList.remove('is-editing');
+        document.getElementById('profileFormContainer').classList.remove('is-editing');
+        document.getElementById('view-mode-buttons').style.display = 'flex';
+        document.getElementById('edit-mode-buttons').style.display = 'none';
+
+        // Restore values
+        if (originalData.firstName !== undefined) {
+            document.getElementById('edit-first-name').value = originalData.firstName;
+            document.getElementById('edit-last-name').value = originalData.lastName;
+            document.getElementById('edit-phone').value = originalData.phone;
+            document.getElementById('edit-pharmacy').value = originalData.pharmacy;
+        }
+
+        clearInlineErrors();
+    }
+
+    function clearInlineErrors() {
+        document.getElementById('err-first-name').style.display = 'none';
+        document.getElementById('err-last-name').style.display = 'none';
+        document.getElementById('err-phone').style.display = 'none';
+    }
+
+    function validateInputs() {
+        clearInlineErrors();
+        let valid = true;
+
+        const firstName = document.getElementById('edit-first-name').value.trim();
+        const lastName = document.getElementById('edit-last-name').value.trim();
+        const phone = document.getElementById('edit-phone').value.trim();
+
+        if (!firstName || firstName.length < 2) {
+            document.getElementById('err-first-name').style.display = 'block';
+            valid = false;
+        }
+
+        if (!lastName) {
+            document.getElementById('err-last-name').style.display = 'block';
+            valid = false;
+        }
+
+        // Phone regex: accepts international & Indian phone formats (e.g. +91 98765 43210, 9876543210, +1-800-555-0199)
+        const phoneRegex = /^(\+?\d{1,4}[-.\s]?)?(\(?\d{3,5}\)?[-.\s]?)?\d{3,5}[-.\s]?\d{4}$/;
+        if (phone && !phoneRegex.test(phone)) {
+            document.getElementById('err-phone').style.display = 'block';
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    function saveProfileChanges() {
+        if (!validateInputs()) return;
+
+        const firstName = document.getElementById('edit-first-name').value.trim();
+        const lastName = document.getElementById('edit-last-name').value.trim();
+        const phone = document.getElementById('edit-phone').value.trim();
+        const pharmacy = document.getElementById('edit-pharmacy').value.trim();
+        const fullName = (firstName + " " + lastName).trim();
+
+        const saveBtn = document.getElementById('save-changes-btn');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+        fetch('/api/profile/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fullName: fullName,
+                firstName: firstName,
+                lastName: lastName,
+                phoneNumber: phone,
+                pharmacyName: pharmacy
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Changes';
+
+            if (data.success && data.user) {
+                const u = data.user;
+
+                // Update text values
+                document.getElementById('val-first-name').innerText = u.firstName || u.fullName;
+                document.getElementById('val-last-name').innerText = u.lastName || '';
+                document.getElementById('val-phone').innerText = u.phoneNumber || '';
+                document.getElementById('val-pharmacy').innerText = u.pharmacyName || '';
+
+                document.getElementById('hero-display-name').innerText = u.fullName;
+
+                // Update Header
+                const headerName = document.getElementById('header-username');
+                if (headerName) headerName.innerText = u.fullName;
+
+                if (!u.profilePhoto) {
+                    const heroText = document.getElementById('hero-avatar-text');
+                    const headerText = document.getElementById('header-avatar-text');
+                    if (heroText) heroText.innerText = u.initials;
+                    if (headerText) headerText.innerText = u.initials;
+                }
+
+                // Show Success Alert Banner
+                showAlertBanner('✓ Profile updated successfully.', 'success');
+                cancelEditMode();
+            } else {
+                showAlertBanner('Unable to update your profile: ' + (data.message || 'Validation error'), 'danger');
+            }
+        })
+        .catch(err => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Changes';
+            showAlertBanner('Unable to update your profile. Please check your network connection and try again. <button class="btn btn-sm btn-outline" style="margin-left:12px;" onclick="saveProfileChanges()">Try Again</button>', 'danger');
+        });
+    }
+
+    function handlePhotoUpload(input) {
+        if (!input.files || !input.files[0]) return;
+
+        const file = input.files[0];
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+        if (!validTypes.includes(file.type)) {
+            showAlertBanner('Please select a valid image file (JPG, JPEG, PNG, WEBP).', 'danger');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            showAlertBanner('Image size should be less than 5MB.', 'danger');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64Photo = e.target.result;
+
+            // Live Preview
+            updateAvatarDOM(base64Photo);
+
+            // Upload via API
+            fetch('/api/profile/photo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ photoData: base64Photo })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showAlertBanner('✓ Profile photo updated successfully.', 'success');
+                    document.getElementById('btn-remove-photo').style.display = 'inline-flex';
+                } else {
+                    showAlertBanner('Unable to upload photo: ' + data.message, 'danger');
+                }
+            })
+            .catch(err => {
+                showAlertBanner('Unable to upload profile photo. Please try again.', 'danger');
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function triggerRemovePhoto() {
+        if (!confirm('Are you sure you want to remove your profile photo?')) return;
+
+        fetch('/api/profile/photo/remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                updateAvatarDOM(null, data.initials);
+                document.getElementById('btn-remove-photo').style.display = 'none';
+                showAlertBanner('✓ Profile photo removed successfully.', 'success');
+            } else {
+                showAlertBanner('Unable to remove photo: ' + data.message, 'danger');
+            }
+        })
+        .catch(err => {
+            showAlertBanner('Unable to remove photo. Please try again.', 'danger');
+        });
+    }
+
+    function updateAvatarDOM(photoUrl, initials) {
+        const heroBox = document.getElementById('hero-avatar-box');
+        const headerBox = document.getElementById('header-avatar');
+
+        if (photoUrl) {
+            heroBox.innerHTML = `<img id="hero-avatar-img" src="${photoUrl}" alt="Profile Photo">`;
+            headerBox.innerHTML = `<img id="header-avatar-img" src="${photoUrl}" style="width:100%; height:100%; object-fit:cover;" alt="Avatar">`;
+        } else {
+            const init = initials || 'A';
+            heroBox.innerHTML = `<span id="hero-avatar-text">${init}</span>`;
+            headerBox.innerHTML = `<span id="header-avatar-text">${init}</span>`;
+        }
+    }
+
+    function showAlertBanner(msg, type) {
+        const banner = document.getElementById('alert-banner');
+        const bgColor = type === 'success' ? '#f0fdf4' : '#fef2f2';
+        const txtColor = type === 'success' ? '#166534' : '#991b1b';
+        const bdColor = type === 'success' ? '#bbf7d0' : '#fecaca';
+
+        banner.innerHTML = `<div class="alert alert-${type}" style="padding:14px 18px; border-radius:12px; background:${bgColor}; color:${txtColor}; border:1px solid ${bdColor}; margin-bottom:24px; font-weight:500;">${msg}</div>`;
+    }
+
+    function enablePharmacyEdit() {
+        document.getElementById('pharmacy-info-section').classList.add('is-editing');
+        document.getElementById('btn-edit-pharmacy').style.display = 'none';
+        document.getElementById('pharmacy-save-cancel-btns').style.display = 'flex';
+        document.querySelectorAll('.hours-view-text').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.hours-edit-controls').forEach(el => el.style.display = 'flex');
+    }
+
+    function cancelPharmacyEdit() {
+        document.getElementById('pharmacy-info-section').classList.remove('is-editing');
+        document.getElementById('btn-edit-pharmacy').style.display = 'inline-flex';
+        document.getElementById('pharmacy-save-cancel-btns').style.display = 'none';
+        document.querySelectorAll('.hours-view-text').forEach(el => el.style.display = 'block');
+        document.querySelectorAll('.hours-edit-controls').forEach(el => el.style.display = 'none');
+    }
+
+    function savePharmacyInfo() {
+        const name = document.getElementById('edit-pharma-name').value.trim();
+        const license = document.getElementById('edit-pharma-license').value.trim();
+        const address = document.getElementById('edit-pharma-address').value.trim();
+        const phone = document.getElementById('edit-pharma-phone').value.trim();
+        const email = document.getElementById('edit-pharma-email').value.trim();
+
+        if (!name) {
+            document.getElementById('err-pharma-name').style.display = 'block';
+            return;
+        }
+
+        const payload = {
+            pharmacyName: name,
+            pharmacyId: license,
+            address: address,
+            phone: phone,
+            email: email,
+            monHours: document.getElementById('edit-hours-mon').value.trim(),
+            tueHours: document.getElementById('edit-hours-tue').value.trim(),
+            wedHours: document.getElementById('edit-hours-wed').value.trim(),
+            thuHours: document.getElementById('edit-hours-thu').value.trim(),
+            friHours: document.getElementById('edit-hours-fri').value.trim(),
+            satHours: document.getElementById('edit-hours-sat').value.trim(),
+            sunHours: document.getElementById('edit-hours-sun').value.trim()
+        };
+
+        const saveBtn = document.getElementById('btn-save-pharmacy');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+        fetch('/api/pharmacy/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Changes';
+
+            if (data.success && data.pharmacy) {
+                const p = data.pharmacy;
+                document.getElementById('val-pharma-name').innerText = p.pharmacyName;
+                document.getElementById('val-pharma-license').innerText = p.pharmacyId;
+                document.getElementById('val-pharma-address').innerText = p.address;
+                document.getElementById('val-pharma-phone').innerText = p.phone;
+                document.getElementById('val-pharma-email').innerText = p.email;
+
+                document.getElementById('val-hours-mon').innerText = p.monHours;
+                document.getElementById('val-hours-tue').innerText = p.tueHours;
+                document.getElementById('val-hours-wed').innerText = p.wedHours;
+                document.getElementById('val-hours-thu').innerText = p.thuHours;
+                document.getElementById('val-hours-fri').innerText = p.friHours;
+                document.getElementById('val-hours-sat').innerText = p.satHours;
+                document.getElementById('val-hours-sun').innerText = p.sunHours;
+
+                cancelPharmacyEdit();
+                showAlertBanner('✓ Pharmacy information updated successfully.', 'success');
+            } else {
+                showAlertBanner('Unable to update pharmacy information: ' + (data.message || 'Error'), 'danger');
+            }
+        })
+        .catch(err => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Changes';
+            showAlertBanner('Unable to update pharmacy information. Please try again.', 'danger');
+        });
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharma Guard — Medicine Inventory</title>
+    <link rel="stylesheet" href="/css/pharmaguard-theme.css">
+</head>
+
+<body>
+
+<!-- NAVIGATION BAR -->
+<!-- ==========================================================================
+     MODERN SAAS NAVBAR
+     ========================================================================== -->
+<header class="navbar">
+
+    <!-- LOGO -->
+    <a href="/dashboard" class="brand" style="text-decoration:none;">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3L19 6V11C19 15.5 16.1 19.5 12 21C7.9 19.5 5 15.5 5 11V6L12 3Z" fill="rgba(255,255,255,0.25)" stroke="white" stroke-width="1.5"/>
+                <path d="M12 7V15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M9 11H15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <div class="brand-text">
+            <h2>PHARMA GUARD</h2>
+            <span>VERIFY. PROTECT. STAY SAFE.</span>
+        </div>
+    </a>
+
+
+    <!-- MOBILE MENU BUTTON -->
+    <button type="button" class="menu-btn" onclick="toggleMenu()" title="Toggle navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6H20"/>
+            <path d="M4 12H20"/>
+            <path d="M4 18H20"/>
+        </svg>
+    </button>
+
+
+    <!-- NAVIGATION LINKS -->
+    <nav class="nav-links" id="navLinks">
+
+        <a href="/dashboard" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            Dashboard
+        </a>
+
+        <a href="/medicines" class="nav-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M8 4L20 16"/>
+                <path d="M16 4L4 16"/>
+                <path d="M6 6L18 18"/>
+                <rect x="3" y="3" width="18" height="18" rx="9"/>
+            </svg>
+            Medicines
+        </a>
+
+        <a href="/inventory" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 7L12 3L21 7L12 11L3 7Z"/>
+                <path d="M3 7V17L12 21L21 17V7"/>
+                <path d="M12 11V21"/>
+            </svg>
+            Inventory
+        </a>
+
+        <a href="/transactions" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M8 7H21M8 12H21M8 17H21M3 7H4M3 12H4M3 17H4"/>
+            </svg>
+            Transactions
+        </a>
+
+        <a href="/alerts" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M18 8C18 4.7 15.3 2 12 2C8.7 2 6 4.7 6 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/>
+                <path d="M10 21H14"/>
+            </svg>
+            Alerts
+        </a>
+
+        <a href="/suppliers" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 21V8L12 3L21 8V21"/>
+                <path d="M7 21V12H17V21"/>
+                <path d="M9 16H15"/>
+            </svg>
+            Suppliers
+        </a>
+
+        <a href="/scan" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 7V3H7"/>
+                <path d="M17 3H21V7"/>
+                <path d="M21 17V21H17"/>
+                <path d="M7 21H3V17"/>
+                <path d="M8 12H16"/>
+            </svg>
+            Scan Medicine
+        </a>
+
+    </nav>
+
+
+    <!-- RIGHT SIDE ACTIONS -->
+    <div class="nav-actions">
+
+        <!-- THEME BUTTON -->
+        <button type="button" class="icon-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">
+            <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 12.8A8.5 8.5 0 1111.2 3 6.5 6.5 0 0021 12.8Z"/>
+            </svg>
+        </button>
+
+        <!-- NOTIFICATION BELL -->
+        <a href="/alerts" class="icon-btn" title="Notifications" style="text-decoration:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M18 8A6 6 0 006 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/>
+                <path d="M10 21H14"/>
+            </svg>
+            <span class="notification-badge" th:if="${activeAlertCount != null and activeAlertCount > 0}" th:text="${activeAlertCount}">3</span>
+        </a>
+
+        <!-- USER PROFILE DROPDOWN -->
+        <div class="profile" id="profile" onclick="toggleProfile()">
+            <div class="avatar" th:text="${#strings.substring(username != null ? username : 'A', 0, 1).toUpperCase()}">A</div>
+            <div class="profile-info">
+                <strong th:text="${username != null ? username : 'Admin'}">Admin</strong>
+                <small>Administrator</small>
+            </div>
+            <svg class="profile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M6 9L12 15L18 9"/>
+            </svg>
+
+            <!-- PROFILE MENU -->
+            <div class="profile-menu">
+                <a href="/profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M4 21C4 16.6 7.6 14 12 14C16.4 14 20 16.6 20 21"/>
+                    </svg>
+                    Profile
+                </a>
+
+                <a href="/settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15A1.7 1.7 0 0020 13.7V10.3A1.7 1.7 0 0019.4 9L17.8 8.4L17 7L17.2 5.3L14.2 3.7L13 4.9L11.5 4.9L10.2 3.7L7.2 5.3L7.4 7L6.6 8.4L5 9L4.4 10.3V13.7L5 15L6.6 15.6L7.4 17L7.2 18.7L10.2 20.3L11.5 19.1H13L14.2 20.3L17.2 18.7L17 17L17.8 15.6L19.4 15Z"/>
+                    </svg>
+                    Settings
+                </a>
+
+                <form th:action="@{/logout}" method="post" style="margin:0;">
+                    <button type="submit" class="logout" style="width:100%; border:none; background:none; text-align:left; cursor:pointer; font-family:inherit;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M10 17L15 12L10 7"/>
+                            <path d="M15 12H3"/>
+                            <path d="M21 19V5C21 3.9 20.1 3 19 3H12"/>
+                        </svg>
+                        Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+</header>
+
+<div class="app-container">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px;">
+        <div>
+            <h1 style="font-size:28px; font-weight:800; color:var(--text-primary);">Medicine Inventory & Safety Audit</h1>
+            <p style="color:var(--text-secondary); font-size:14px;">Manage, monitor, and inspect medicine inventory status and intelligence details.</p>
+        </div>
+        <button type="button" onclick="openAddMedicineModal()" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Medicine</button>
+    </div>
+
+    <!-- MESSAGES -->
+    <div th:if="${param.success}" style="padding:14px; background:var(--success-bg); color:var(--success-text); border-radius:var(--radius-sm); margin-bottom:20px; font-weight:600;" th:text="${param.success}">Success</div>
+    <div th:if="${param.error}" style="padding:14px; background:var(--danger-bg); color:var(--danger-text); border-radius:var(--radius-sm); margin-bottom:20px; font-weight:600;" th:text="${param.error}">Error</div>
+
+    <!-- TOP SEARCH & FILTER BAR -->
+    <div class="card" style="margin-bottom:24px; padding:16px 24px;">
+        <form action="/medicines" method="get" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+            <input type="text" id="searchInput" name="keyword" placeholder="Search medicine by name, category, or batch..." th:value="${keyword}" style="flex:1; min-width:240px;">
+            <select id="statusFilter" onchange="filterMedicineTable()" style="padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:14px; background:var(--bg-surface-hover); color:var(--text-primary); cursor:pointer;">
+                <option value="ALL">All Expiry Statuses</option>
+                <option value="SAFE">Safe</option>
+                <option value="EXPIRING_SOON">Expiring Soon</option>
+                <option value="EXPIRED">Expired</option>
+            </select>
+            <button type="submit" class="btn btn-secondary"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+        </form>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="card" th:if="${#lists.isEmpty(medicines)}" style="text-align:center; padding:48px 24px;">
+        <div style="font-size:48px; margin-bottom:12px; color:var(--primary);"><i class="fa-solid fa-pills"></i></div>
+        <h3>No medicines found</h3>
+        <p style="color:var(--text-secondary); margin-bottom:20px;">Your medicine inventory list is currently empty or matches no search criteria.</p>
+        <button type="button" onclick="openAddMedicineModal()" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Medicine</button>
+    </div>
+
+    <!-- MEDICINE TABLE -->
+    <div class="table-responsive" th:unless="${#lists.isEmpty(medicines)}">
+        <table id="medicineTable">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Medicine Name</th>
+                <th>Category</th>
+                <th>Batch No</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Expiry Date</th>
+                <th>Status</th>
+                <th>Supplier</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="medicine : ${medicines}" th:data-expiry="${medicine.expiryDate}">
+                <td th:text="${medicine.id}">1</td>
+                <td>
+                    <strong th:text="${medicine.medicineName}">Medicine</strong>
+                </td>
+                <td th:text="${medicine.category}">Category</td>
+                <td><code th:text="${medicine.batchNumber}">BATCH</code></td>
+                <td>
+                    <span th:text="${medicine.quantity}" th:style="${medicine.quantity <= medicine.reorderLevel ? 'color:var(--danger); font-weight:bold;' : 'font-weight:600;'}">0</span>
+                </td>
+                <td th:text="${'₹' + medicine.price}">0.00</td>
+                <td th:text="${medicine.expiryDate}">2026-12-31</td>
+                <td>
+                    <span class="status-badge" th:data-expiry-date="${medicine.expiryDate}">Calculating...</span>
+                </td>
+                <td th:text="${medicine.supplierName}">Supplier</td>
+                <td>
+                    <div style="display:flex; gap:6px;">
+                        <a class="btn btn-secondary" style="padding:6px 12px; font-size:12px;" th:href="@{/medicines/details/{id}(id=${medicine.id})}">💡 Details</a>
+                        <button type="button" class="btn btn-outline" style="padding:6px 12px; font-size:12px;" th:onclick="'openEditMedicineModal(' + ${medicine.id} + ')'">Edit</button>
+                        <a class="btn btn-danger" style="padding:6px 12px; font-size:12px;" th:href="@{/medicines/delete/{id}(id=${medicine.id})}" onclick="return confirm('Delete this medicine?')">Delete</a>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            evaluateTableStatuses();
+        });
+
+        function evaluateTableStatuses() {
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            document.querySelectorAll('.status-badge').forEach(badge => {
+                const dateStr = badge.getAttribute('data-expiry-date');
+                if (!dateStr) return;
+
+                const expDate = new Date(dateStr);
+                expDate.setHours(0,0,0,0);
+
+                const diffTime = expDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                let statusText = '';
+                let bg = '';
+                let color = '';
+                let code = '';
+
+                if (diffDays < 0) {
+                    statusText = '<i class="fa-solid fa-circle-exclamation"></i> Expired';
+                    bg = '#FEE2E2';
+                    color = '#DC2626';
+                    code = 'EXPIRED';
+                } else if (diffDays <= 7) {
+                    statusText = '<i class="fa-solid fa-triangle-exclamation"></i> Expiring Soon';
+                    bg = '#FEF3C7';
+                    color = '#D97706';
+                    code = 'EXPIRING_SOON';
+                } else {
+                    statusText = '<i class="fa-solid fa-circle-check"></i> Safe';
+                    bg = '#DCFCE7';
+                    color = '#15803D';
+                    code = 'SAFE';
+                }
+
+                badge.innerHTML = statusText;
+                badge.style.background = bg;
+                badge.style.color = color;
+                badge.style.padding = '4px 10px';
+                badge.style.borderRadius = '12px';
+                badge.style.fontSize = '12px';
+                badge.style.fontWeight = '700';
+                badge.setAttribute('data-status-code', code);
+            });
+        }
+
+        function filterMedicineTable() {
+            const val = document.getElementById('statusFilter').value;
+            const rows = document.querySelectorAll('#medicineTable tbody tr');
+
+            rows.forEach(row => {
+                const badge = row.querySelector('.status-badge');
+                if (!badge) return;
+                const statusCode = badge.getAttribute('data-status-code');
+
+                if (val === 'ALL' || statusCode === val) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
+
+</div>
+
+<!-- ADD / EDIT MEDICINE MODAL -->
+<div class="modal-backdrop" id="medicine-form-modal" style="display:none;">
+    <div class="modal-content" style="max-width:650px; width:90%; max-height:90vh; overflow-y:auto;">
+        <div class="modal-header">
+            <div class="modal-title" id="medicine-modal-title">💊 Add New Medicine</div>
+            <button type="button" class="modal-close" onclick="closeMedicineModal()">✕</button>
+        </div>
+
+        <div id="modal-alert-banner" style="display:none; margin-bottom:16px;"></div>
+
+        <form id="modalMedicineForm" onsubmit="saveMedicineModalAjax(event)">
+            <input type="hidden" id="modal-med-id" name="id">
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+                <div class="form-group" style="grid-column: span 2;">
+                    <label style="font-size:13px; font-weight:600; color:var(--text-primary);">Medicine Name <span style="color:red;">*</span></label>
+                    <input type="text" id="modal-med-name" required placeholder="e.g. Amoxicillin 500mg" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); font-size:14px;">
+                    <div class="error-text" id="modal-err-name" style="color:#dc2626; font-size:12px; display:none;">Medicine name is required.</div>
+                </div>
+
+                <div class="form-group">
+                    <label style="font-size:13px; font-weight:600; color:var(--text-primary);">Category <span style="color:red;">*</span></label>
+                    <input type="text" id="modal-med-category" required placeholder="e.g. Antibiotic" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); font-size:14px;">
+                    <div class="error-text" id="modal-err-category" style="color:#dc2626; font-size:12px; display:none;">Category is required.</div>
+                </div>
+
+                <div class="form-group">
+                    <label style="font-size:13px; font-weight:600; color:var(--text-primary);">Batch Number <span style="color:red;">*</span></label>
+                    <input type="text" id="modal-med-batch" required placeholder="e.g. AMX-2026-001" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); font-size:14px;">
+                    <div class="error-text" id="modal-err-batch" style="color:#dc2626; font-size:12px; display:none;">Batch number is required.</div>
+                </div>
+
+                <div class="form-group">
+                    <label style="font-size:13px; font-weight:600; color:var(--text-primary);">Quantity <span style="color:red;">*</span></label>
+                    <input type="number" id="modal-med-quantity" min="0" required placeholder="0" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); font-size:14px;">
+                    <div class="error-text" id="modal-err-quantity" style="color:#dc2626; font-size:12px; display:none;">Quantity must be 0 or greater.</div>
+                </div>
+
+                <div class="form-group">
+                    <label style="font-size:13px; font-weight:600; color:var(--text-primary);">Price (₹) <span style="color:red;">*</span></label>
+                    <input type="number" id="modal-med-price" step="0.01" min="0.01" required placeholder="0.00" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); font-size:14px;">
+                    <div class="error-text" id="modal-err-price" style="color:#dc2626; font-size:12px; display:none;">Price must be greater than 0.</div>
+                </div>
+
+                <div class="form-group">
+                    <label style="font-size:13px; font-weight:600; color:var(--text-primary);">Expiry Date <span style="color:red;">*</span></label>
+                    <input type="date" id="modal-med-expiry" required style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); font-size:14px;">
+                    <div class="error-text" id="modal-err-expiry" style="color:#dc2626; font-size:12px; display:none;">Expiry date is required.</div>
+                </div>
+
+                <div class="form-group">
+                    <label style="font-size:13px; font-weight:600; color:var(--text-primary);">Minimum Reorder Level</label>
+                    <input type="number" id="modal-med-reorder" min="0" value="20" placeholder="20" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); font-size:14px;">
+                </div>
+
+                <div class="form-group" style="grid-column: span 2;">
+                    <label style="font-size:13px; font-weight:600; color:var(--text-primary);">Supplier Name</label>
+                    <input type="text" id="modal-med-supplier" placeholder="e.g. PharmaCorp Supplies" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); font-size:14px;">
+                </div>
+            </div>
+
+            <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" class="btn btn-outline" onclick="closeMedicineModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="btn-modal-save-med">💾 Save Medicine</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODALS & AI WIDGET -->
+<div class="modal-backdrop" id="scanner-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">📷 Scan & Verify Medicine Barcode</div>
+            <button type="button" class="modal-close" onclick="closeScannerModal()">✕</button>
+        </div>
+        <p style="font-size:14px; color:var(--text-secondary); margin-bottom:14px;">Align the medicine barcode or QR code inside the camera frame below.</p>
+        <div class="scanner-viewport">
+            <video id="scanner-video" autoplay playsinline style="width:100%; height:100%; object-fit:cover; display:none;"></video>
+            <div class="laser-line"></div>
+            <div class="scanner-overlay" id="scanner-placeholder">Align barcode here</div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="button" class="btn btn-teal" style="flex:1;" onclick="startCamera()">📷 Open Camera</button>
+            <button type="button" class="btn btn-primary" style="flex:1;" onclick="simulateScan()">⚡ Scan Barcode</button>
+            <button type="button" class="btn btn-outline" onclick="closeScannerModal()">Cancel</button>
+        </div>
+        <div id="scanner-result" style="display:none; margin-top:16px;"></div>
+    </div>
+</div>
+
+<div class="ai-assistant-trigger" onclick="toggleAiChat()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+    AI Assistant
+</div>
+
+<footer class="footer">
+    <div class="footer-content">
+        <div>
+            <strong style="color:var(--text-primary); font-size:16px;">PHARMA GUARD</strong>
+            <div style="font-size:12px; color:var(--text-secondary);">Verify. Protect. Stay Safe.</div>
+        </div>
+        <div style="display:flex; gap:16px; font-weight:600;">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/medicines">Medicines</a>
+            <a href="/alerts">Alerts</a>
+        </div>
+    </div>
+</footer>
+
+<script src="/js/pharmaguard-theme.js"></script>
+<script>
+    function openAddMedicineModal() {
+        document.getElementById('modal-med-id').value = '';
+        document.getElementById('modal-med-name').value = '';
+        document.getElementById('modal-med-category').value = '';
+        document.getElementById('modal-med-batch').value = '';
+        document.getElementById('modal-med-quantity').value = '';
+        document.getElementById('modal-med-price').value = '';
+        document.getElementById('modal-med-expiry').value = '';
+        document.getElementById('modal-med-reorder').value = '20';
+        document.getElementById('modal-med-supplier').value = '';
+
+        document.getElementById('medicine-modal-title').innerHTML = '💊 Add New Medicine';
+        document.getElementById('modal-alert-banner').style.display = 'none';
+        document.getElementById('medicine-form-modal').style.display = 'flex';
+    }
+
+    function openEditMedicineModal(id) {
+        fetch('/medicines/api/details/' + id)
+            .then(res => res.json())
+            .then(med => {
+                document.getElementById('modal-med-id').value = med.id || '';
+                document.getElementById('modal-med-name').value = med.medicineName || '';
+                document.getElementById('modal-med-category').value = med.category || '';
+                document.getElementById('modal-med-batch').value = med.batchNumber || '';
+                document.getElementById('modal-med-quantity').value = med.quantity !== undefined ? med.quantity : '';
+                document.getElementById('modal-med-price').value = med.price !== undefined ? med.price : '';
+                document.getElementById('modal-med-expiry').value = med.expiryDate || '';
+                document.getElementById('modal-med-reorder').value = med.reorderLevel !== undefined ? med.reorderLevel : '20';
+                document.getElementById('modal-med-supplier').value = med.supplierName || '';
+
+                document.getElementById('medicine-modal-title').innerHTML = '✏️ Edit Medicine';
+                document.getElementById('modal-alert-banner').style.display = 'none';
+                document.getElementById('medicine-form-modal').style.display = 'flex';
+            })
+            .catch(err => {
+                window.location.href = '/medicines/edit/' + id;
+            });
+    }
+
+    function closeMedicineModal() {
+        document.getElementById('medicine-form-modal').style.display = 'none';
+    }
+
+    function saveMedicineModalAjax(event) {
+        event.preventDefault();
+
+        const idVal = document.getElementById('modal-med-id').value;
+        const name = document.getElementById('modal-med-name').value.trim();
+        const category = document.getElementById('modal-med-category').value.trim();
+        const batch = document.getElementById('modal-med-batch').value.trim();
+        const quantity = parseInt(document.getElementById('modal-med-quantity').value);
+        const price = parseFloat(document.getElementById('modal-med-price').value);
+        const expiry = document.getElementById('modal-med-expiry').value;
+        const reorder = parseInt(document.getElementById('modal-med-reorder').value) || 20;
+        const supplier = document.getElementById('modal-med-supplier').value.trim();
+
+        const banner = document.getElementById('modal-alert-banner');
+        banner.style.display = 'none';
+
+        if (!name || !category || !batch || !expiry || isNaN(quantity) || isNaN(price)) {
+            banner.style.display = 'block';
+            banner.innerHTML = '<div style="padding:10px 14px; background:#fde8e8; color:#e74c3c; border-radius:8px; font-size:13px; font-weight:600;">Please fill out all required fields with valid values.</div>';
+            return;
+        }
+
+        const payload = {
+            id: idVal ? parseInt(idVal) : null,
+            medicineName: name,
+            category: category,
+            batchNumber: batch,
+            quantity: quantity,
+            price: price,
+            expiryDate: expiry,
+            reorderLevel: reorder,
+            supplierName: supplier
+        };
+
+        const saveBtn = document.getElementById('btn-modal-save-med');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+        fetch('/medicines/api/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '💾 Save Medicine';
+
+            if (data.success) {
+                closeMedicineModal();
+                window.location.href = '/medicines?success=✓+Medicine+saved+successfully';
+            } else {
+                banner.style.display = 'block';
+                banner.innerHTML = `<div style="padding:10px 14px; background:#fde8e8; color:#e74c3c; border:1px solid #f5b7b1; border-radius:8px; font-size:13px; font-weight:600;"><i class="fa-solid fa-circle-exclamation"></i> ${data.message || 'Unable to save medicine.'}</div>`;
+            }
+        })
+        .catch(err => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '💾 Save Medicine';
+            banner.style.display = 'block';
+            banner.innerHTML = '<div style="padding:10px 14px; background:#fde8e8; color:#e74c3c; border-radius:8px; font-size:13px; font-weight:600;">Unable to save medicine. Please check your connection and try again.</div>';
+        });
+    }
+</script>
+</body>
+</html>
+

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharma Guard — Stock Audit Transactions</title>
+    <link rel="stylesheet" href="/css/pharmaguard-theme.css">
+</head>
+
+<body>
+
+<!-- NAVIGATION BAR -->
+<!-- ==========================================================================
+     MODERN SAAS NAVBAR
+     ========================================================================== -->
+<header class="navbar">
+
+    <!-- LOGO -->
+    <a href="/dashboard" class="brand" style="text-decoration:none;">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3L19 6V11C19 15.5 16.1 19.5 12 21C7.9 19.5 5 15.5 5 11V6L12 3Z" fill="rgba(255,255,255,0.25)" stroke="white" stroke-width="1.5"/>
+                <path d="M12 7V15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M9 11H15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <div class="brand-text">
+            <h2>PHARMA GUARD</h2>
+            <span>VERIFY. PROTECT. STAY SAFE.</span>
+        </div>
+    </a>
+
+
+    <!-- MOBILE MENU BUTTON -->
+    <button type="button" class="menu-btn" onclick="toggleMenu()" title="Toggle navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6H20"/>
+            <path d="M4 12H20"/>
+            <path d="M4 18H20"/>
+        </svg>
+    </button>
+
+
+    <!-- NAVIGATION LINKS -->
+    <nav class="nav-links" id="navLinks">
+
+        <a href="/dashboard" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            Dashboard
+        </a>
+
+        <a href="/medicines" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M8 4L20 16"/>
+                <path d="M16 4L4 16"/>
+                <path d="M6 6L18 18"/>
+                <rect x="3" y="3" width="18" height="18" rx="9"/>
+            </svg>
+            Medicines
+        </a>
+
+        <a href="/inventory" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 7L12 3L21 7L12 11L3 7Z"/>
+                <path d="M3 7V17L12 21L21 17V7"/>
+                <path d="M12 11V21"/>
+            </svg>
+            Inventory
+        </a>
+
+        <a href="/transactions" class="nav-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M8 7H21M8 12H21M8 17H21M3 7H4M3 12H4M3 17H4"/>
+            </svg>
+            Transactions
+        </a>
+
+        <a href="/alerts" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M18 8C18 4.7 15.3 2 12 2C8.7 2 6 4.7 6 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/>
+                <path d="M10 21H14"/>
+            </svg>
+            Alerts
+        </a>
+
+        <a href="/suppliers" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 21V8L12 3L21 8V21"/>
+                <path d="M7 21V12H17V21"/>
+                <path d="M9 16H15"/>
+            </svg>
+            Suppliers
+        </a>
+
+        <a href="/scan" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 7V3H7"/>
+                <path d="M17 3H21V7"/>
+                <path d="M21 17V21H17"/>
+                <path d="M7 21H3V17"/>
+                <path d="M8 12H16"/>
+            </svg>
+            Scan Medicine
+        </a>
+
+    </nav>
+
+
+    <!-- RIGHT SIDE ACTIONS -->
+    <div class="nav-actions">
+
+        <!-- THEME BUTTON -->
+        <button type="button" class="icon-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">
+            <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 12.8A8.5 8.5 0 1111.2 3 6.5 6.5 0 0021 12.8Z"/>
+            </svg>
+        </button>
+
+        <!-- NOTIFICATION BELL -->
+        <a href="/alerts" class="icon-btn" title="Notifications" style="text-decoration:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M18 8A6 6 0 006 8C6 15 3 15 3 17H21C21 15 18 15 18 8Z"/>
+                <path d="M10 21H14"/>
+            </svg>
+            <span class="notification-badge" th:if="${activeAlertCount != null and activeAlertCount > 0}" th:text="${activeAlertCount}">3</span>
+        </a>
+
+        <!-- USER PROFILE DROPDOWN -->
+        <div class="profile" id="profile" onclick="toggleProfile()">
+            <div class="avatar" th:text="${#strings.substring(username != null ? username : 'A', 0, 1).toUpperCase()}">A</div>
+            <div class="profile-info">
+                <strong th:text="${username != null ? username : 'Admin'}">Admin</strong>
+                <small>Administrator</small>
+            </div>
+            <svg class="profile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M6 9L12 15L18 9"/>
+            </svg>
+
+            <!-- PROFILE MENU -->
+            <div class="profile-menu">
+                <a href="/profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M4 21C4 16.6 7.6 14 12 14C16.4 14 20 16.6 20 21"/>
+                    </svg>
+                    Profile
+                </a>
+
+                <a href="/settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15A1.7 1.7 0 0020 13.7V10.3A1.7 1.7 0 0019.4 9L17.8 8.4L17 7L17.2 5.3L14.2 3.7L13 4.9L11.5 4.9L10.2 3.7L7.2 5.3L7.4 7L6.6 8.4L5 9L4.4 10.3V13.7L5 15L6.6 15.6L7.4 17L7.2 18.7L10.2 20.3L11.5 19.1H13L14.2 20.3L17.2 18.7L17 17L17.8 15.6L19.4 15Z"/>
+                    </svg>
+                    Settings
+                </a>
+
+                <form th:action="@{/logout}" method="post" style="margin:0;">
+                    <button type="submit" class="logout" style="width:100%; border:none; background:none; text-align:left; cursor:pointer; font-family:inherit;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M10 17L15 12L10 7"/>
+                            <path d="M15 12H3"/>
+                            <path d="M21 19V5C21 3.9 20.1 3 19 3H12"/>
+                        </svg>
+                        Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+</header>
+
+<div class="app-container">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px;">
+        <div>
+            <h1 style="font-size:28px; font-weight:800; color:var(--text-primary);"><i class="fa-solid fa-clock-rotate-left"></i> Stock Movement Audit History Log</h1>
+            <p style="color:var(--text-secondary); font-size:14px;">Historical tracking of all STOCK_IN, STOCK_OUT, and ADJUSTMENT inventory movements.</p>
+        </div>
+        <a href="/dashboard" class="btn btn-outline">← Back to Dashboard</a>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive" th:if="${transactions != null and !transactions.isEmpty()}">
+            <table>
+                <thead>
+                <tr>
+                    <th>Tx ID</th>
+                    <th>Date & Time</th>
+                    <th>Medicine</th>
+                    <th>Batch No</th>
+                    <th>Type</th>
+                    <th>Quantity</th>
+                    <th>Notes</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="tx : ${transactions}">
+                    <td th:text="${tx.id}">1</td>
+                    <td th:text="${#temporals.format(tx.transactionDate, 'dd-MM-yyyy HH:mm:ss')}">2026-08-19 14:00</td>
+                    <td>
+                        <strong th:text="${tx.medicine.medicineName}">Medicine Name</strong>
+                    </td>
+                    <td><code th:text="${tx.medicine.batchNumber}">B123</code></td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${tx.transactionType == T(com.pharmaguard.enums.TransactionType).STOCK_IN ? 'badge-verified' : (tx.transactionType == T(com.pharmaguard.enums.TransactionType).STOCK_OUT ? 'badge-danger' : 'badge-warning')}"
+                              th:text="${tx.transactionType}">STOCK_IN</span>
+                    </td>
+                    <td th:text="${tx.quantity}">10</td>
+                    <td th:text="${tx.notes != null ? tx.notes : '-'}">Initial stock addition</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:if="${transactions == null or transactions.isEmpty()}" style="text-align:center; padding:48px 24px; color:var(--text-muted);">
+            <div style="font-size:48px; margin-bottom:12px;">📋</div>
+            <h3>No transaction history recorded yet</h3>
+            <p>Stock movement transactions will record here automatically when medicines are added, edited, or consumed.</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODALS & AI WIDGET -->
+<div class="modal-backdrop" id="scanner-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">📷 System Camera Barcode Scanner</div>
+            <span id="scanner-status" style="font-size:13px; font-weight:600; color:var(--primary); margin-left:auto; margin-right:12px;"></span>
+            <button type="button" class="modal-close" onclick="closeScannerModal()">✕</button>
+        </div>
+        <p style="font-size:14px; color:var(--text-secondary); margin-bottom:14px;">Point your system camera at a medicine barcode or QR code.</p>
+        <div class="scanner-viewport">
+            <video id="scanner-video" autoplay playsinline style="width:100%; height:100%; object-fit:cover; display:none;"></video>
+            <div class="laser-line"></div>
+            <div class="scanner-overlay" id="scanner-placeholder">Align barcode here</div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="button" class="btn btn-teal" style="flex:1;" onclick="startCamera()">📷 Restart Camera</button>
+            <button type="button" class="btn btn-primary" style="flex:1;" onclick="simulateScan()">⚡ Test Barcode Scan</button>
+            <button type="button" class="btn btn-outline" onclick="closeScannerModal()">Close</button>
+        </div>
+        <div id="scanner-result" style="display:none; margin-top:16px;"></div>
+    </div>
+</div>
+
+<div class="ai-assistant-trigger" onclick="toggleAiChat()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+    AI Assistant
+</div>
+
+<footer class="footer">
+    <div class="footer-content">
+        <div>
+            <strong style="color:var(--text-primary); font-size:16px;">PHARMA GUARD</strong>
+            <div style="font-size:12px; color:var(--text-secondary);">Verify. Protect. Stay Safe.</div>
+        </div>
+    </div>
+</footer>
+
+<script src="/js/pharmaguard-theme.js"></script>
+</body>
+</html>
+
